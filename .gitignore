@@ -1,0 +1,31 @@
+# Generated environments and caches
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.py[cod]
+**/node_modules/
+**/.vite/
+**/dist/
+
+# Local configuration and secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Experiment artifacts: keep metadata/results summaries, not bulky raw output
+**/data/
+**/datasets/
+**/outputs/
+**/runs/
+**/logs/
+**/checkpoints/
+**/wandb/
+
+# Editor and OS files
+**/.idea/
+**/.vscode/
+**/.DS_Store
+**/Thumbs.db
+
+# Recoverable metadata from repositories that were flattened into this repo
+.nested-git-backup/
