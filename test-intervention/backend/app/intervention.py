@@ -69,6 +69,7 @@ def _intervened_attention_forward(state: InterventionState, layer_idx: int):
         if attention_mask is not None:
             attn_weights = attn_weights + attention_mask
 
+        # Our experiment: add the selected region's per-layer a/b bias; self.scale above is CLIP's fixed normalization.
         key_bias = state.key_bias_for_layer(layer_idx, attn_weights.shape[-1])
         if key_bias is not None:
             attn_weights = attn_weights + key_bias.to(attn_weights)
