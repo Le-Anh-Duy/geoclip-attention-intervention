@@ -1,19 +1,31 @@
-# vendored GeoCLIP (own repo: github.com/Le-Anh-Duy/geo-clip) — includes model weights + GPS gallery data
-geo-clip/
+# Generated environments and caches
+**/.venv/
+**/venv/
+**/__pycache__/
+**/*.py[cod]
+**/node_modules/
+**/.vite/
+**/dist/
 
-# Python
-__pycache__/
-*.pyc
-backend/.venv/
+# Local configuration and secrets
+**/.env
+**/.env.*
+!**/.env.example
 
-# Node
-frontend/node_modules/
-frontend/dist/
-frontend/dist-ssr/
-*.local
+# Experiment artifacts: keep metadata/results summaries, not bulky raw output
+**/data/
+**/datasets/
+**/outputs/
+**/runs/
+**/logs/
+**/checkpoints/
+**/wandb/
 
-# Editor / OS
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
+# Editor and OS files
+**/.idea/
+**/.vscode/
+**/.DS_Store
+**/Thumbs.db
+
+# Recoverable metadata from repositories that were flattened into this repo
+.nested-git-backup/

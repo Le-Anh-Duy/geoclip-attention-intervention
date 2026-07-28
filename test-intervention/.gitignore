@@ -1,0 +1,17 @@
+# vendored GeoCLIP (own repo: github.com/Le-Anh-Duy/geo-clip) — includes model weights + GPS gallery data
+# Python
+__pycache__/
+*.pyc
+backend/.venv/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+*.local
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
