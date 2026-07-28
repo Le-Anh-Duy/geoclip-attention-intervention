@@ -35,18 +35,17 @@ output       = attn_weights · V
 
 `attn_weights[i, j]` = query `i` "chú ý" bao nhiêu vào key `j`. Đây là một phân phối xác suất — mỗi hàng cộng lại bằng 1.
 
-**Can thiệp** chèn thêm 1 bước, ngay sau softmax, ngay trước khi nhân với V:
+**Can thiệp** cộng bias theo key vào logit, ngay trước softmax:
 
 ```
-scale[j] = a   nếu key j nằm trong vùng bạn chọn
-scale[j] = b   nếu key j nằm ngoài vùng
-attn_weights[i, j] *= scale[j]           # nhân theo cột (theo key)
-attn_weights[i, :] /= sum(attn_weights[i, :])   # renormalize để hàng lại cộng = 1
+bias[j] = a   nếu key j nằm trong vùng bạn chọn
+bias[j] = b   nếu key j nằm ngoài vùng
+attn_weights = softmax(Q · Kᵀ / √d + bias)
 ```
 
-Với `a > 1, b < 1`: mọi token (kể cả CLS) sẽ "hút" thông tin từ vùng bạn chọn nhiều hơn một chút, và từ phần còn lại ít hơn một chút. `a = b = 1` ⇒ scale toàn 1 ⇒ không đổi gì → **baseline chính là intervention với a=b=1**, dùng chung 1 hàm code.
+Với `a > 0, b < 0`: mọi token (kể cả CLS khi đóng vai trò query) sẽ "hút" thông tin từ vùng bạn chọn nhiều hơn và từ phần còn lại ít hơn. `a = b = 0` ⇒ không đổi gì. Scale cũ và bias liên hệ chính xác bởi `bias = log(scale)`; UI cho phép đổi cách hiển thị nhưng backend luôn lưu bias.
 
-CLS token (vị trí 0 trong sequence) — đại diện "toàn ảnh", không phải 1 patch không gian cụ thể — **không bao giờ bị scale khi đóng vai trò key** (luôn giữ scale=1), vì nó không có ý nghĩa "trong/ngoài vùng".
+CLS token (vị trí 0 trong sequence) — đại diện "toàn ảnh", không phải 1 patch không gian cụ thể — **không bao giờ bị bias khi đóng vai trò key** (luôn giữ bias=0), vì nó không có ý nghĩa "trong/ngoài vùng".
 
 ---
 
@@ -65,24 +64,24 @@ class InterventionState:
 
 `@dataclass` là syntax Python tự sinh `__init__` từ khai báo field — tương đương viết tay `def __init__(self, layer_ab={}, in_region_mask=None): ...` nhưng gọn hơn. `field(default_factory=dict)` là cách bắt buộc để default value là 1 dict *mới* mỗi lần khởi tạo object (nếu viết `layer_ab: dict = {}` trực tiếp, Python sẽ dùng **chung một dict** cho mọi instance — bug kinh điển).
 
-`layer_ab` mặc định rỗng: layer nào không có trong dict thì coi như `(1, 1)` — không can thiệp.
+`layer_ab` mặc định rỗng: layer nào không có trong dict thì coi như `(0, 0)` — không can thiệp.
 
 ```python
-def key_scale_for_layer(self, layer_idx, num_positions):
-    a, b = self.layer_ab.get(layer_idx, (1.0, 1.0))
-    if a == 1.0 and b == 1.0:
+def key_bias_for_layer(self, layer_idx, num_positions):
+    a, b = self.layer_ab.get(layer_idx, (0.0, 0.0))
+    if a == 0.0 and b == 0.0:
         return None                          # no-op nhanh, khỏi tính toán thừa
     if self.in_region_mask is None:
         return None
-    scale = torch.full((num_positions,), b, dtype=torch.float32)   # mặc định tất cả = b
-    scale[0] = 1.0                            # CLS key: luôn giữ nguyên
-    scale[1:] = torch.where(self.in_region_mask, torch.tensor(a), torch.tensor(b))
-    return scale
+    bias = torch.full((num_positions,), b, dtype=torch.float32)
+    bias[0] = 0.0                             # CLS key: luôn giữ nguyên
+    bias[1:].masked_fill_(self.in_region_mask, a)
+    return bias
 ```
 
-Đây chính là hàm build ra vector `scale[j]` ở công thức trên, cho **một layer cụ thể**. `torch.where(cond, x, y)` = "nếu cond[i] đúng thì lấy x[i] không thì lấy y[i]" — element-wise, giống `np.where`. `num_positions` = 257 (1 CLS + 256 patch).
+Đây chính là hàm build ra vector `bias[j]` ở công thức trên cho **một layer cụ thể**. `num_positions` = 257 (1 CLS + 256 patch).
 
-### 3.2. `_intervened_attention_forward` — nơi scale thật sự xảy ra (dòng 53-90)
+### 3.2. `_intervened_attention_forward` — nơi bias thật sự xảy ra
 
 Đây là hàm **factory** — một hàm trả về một hàm khác:
 
@@ -103,17 +102,15 @@ keys    = self.k_proj(hidden_states).view(hidden_shape).transpose(1, 2)
 values  = self.v_proj(hidden_states).view(hidden_shape).transpose(1, 2)
 
 attn_weights = torch.matmul(queries, keys.transpose(-1, -2)) * self.scale   # Q·Kᵀ / √d
+key_bias = state.key_bias_for_layer(layer_idx, attn_weights.shape[-1])
+if key_bias is not None:
+    attn_weights = attn_weights + key_bias.to(attn_weights)            # ← CAN THIỆP Ở ĐÂY
+
 attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32).to(queries.dtype)
-
-key_scale = state.key_scale_for_layer(layer_idx, attn_weights.shape[-1])
-if key_scale is not None:
-    attn_weights = attn_weights * key_scale.to(attn_weights.dtype)     # ← CAN THIỆP Ở ĐÂY
-    attn_weights = attn_weights / attn_weights.sum(dim=-1, keepdim=True)  # renormalize
-
 attn_output = torch.matmul(attn_weights, values)     # attn_weights · V
 ```
 
-`attn_weights` có shape `(batch, num_heads, num_queries, num_keys)`. `key_scale` shape `(num_keys,)` — khi nhân, PyTorch tự **broadcast** nó vào chiều cuối cùng (giống numpy broadcasting), tức là scale áp dụng theo **cột** (theo key), giống hệt mọi query đều nhân cùng 1 vector scale — đúng ý "mọi token đều hút vùng được chọn nhiều hơn", không riêng CLS.
+`attn_weights` có shape `(batch, num_heads, num_queries, num_keys)`. `key_bias` shape `(num_keys,)` — khi cộng, PyTorch tự **broadcast** nó vào chiều cuối cùng, tức là bias áp dụng theo **cột** (theo key), giống hệt mọi query đều dùng cùng 1 vector bias.
 
 **Vì sao phải viết lại tay** thay vì chỉnh trực tiếp: thư viện `transformers` hiện đại (v5.x) đóng gói attention qua `ALL_ATTENTION_FUNCTIONS` — một dispatch table (eager/sdpa/flash...) không có "khe hở" nào để chèn thêm bước ở giữa softmax và matmul V. Nên cách đơn giản nhất (ponytail: ít code nhất mà đúng) là copy lại đúng logic eager attention rồi chèn 3 dòng vào giữa, thay vì monkey-patch sâu vào nội bộ thư viện.
 
@@ -222,7 +219,7 @@ Kéo-thả: `onDragOver` phải gọi `e.preventDefault()` — mặc định tr�
 
 ### 5.2. Chỉnh a/b — `LayerControls.jsx`
 
-Mỗi layer là 1 hàng, gồm 2 cặp slider+number cho `a`/`b`. State ở dạng `{layerIdx: [a, b]}`, gửi thẳng lên backend qua `layer_configs` — khớp với `layer_ab` mà `InterventionState` mong đợi (dict `int → (a,b)`), chỉ khác JSON không có kiểu tuple nên backend tự `tuple(v)` lại khi parse (xem `main.py` dòng 126).
+Mỗi layer là 1 hàng, gồm 2 cặp slider+number cho bias `a`/`b`. State luôn lưu bias dưới dạng `{layerIdx: [a, b]}` và gửi thẳng lên backend qua `layer_configs`. Chế độ “Scale tương đương” chỉ đổi cách nhập/hiển thị bằng `scale = exp(bias)` và `bias = log(scale)`; đổi chế độ không đổi prediction.
 
 ### 5.3. Kết quả + bản đồ — `ResultsPanel.jsx`
 
@@ -272,7 +269,7 @@ Poll `GET /health` mỗi 2s. `predicting` prop (từ `App.jsx`, bật true ngay 
 2. Frontend gửi `POST /predict` (multipart form: ảnh + JSON regions + JSON layer_configs + ground_truth + top_k).
 3. Backend: parse JSON, đọc kích thước ảnh gốc, build `in_region_mask` (16×16 bool) bằng cách tái tạo phép resize+crop của CLIP.
 4. Chạy `model.predict()` lần 1 với `state` rỗng → **baseline**.
-5. Set `state.layer_ab`/`in_region_mask` theo config bạn gửi → chạy `model.predict()` lần 2 → mỗi lần 1 trong 24 layer tự động dùng `forward` đã patch, tự tra `state` để biết có scale hay không (layer không có trong `layer_configs` thì `key_scale_for_layer` trả `None`, chạy y hệt attention gốc) → **intervention**.
+5. Set `state.layer_ab`/`in_region_mask` theo config bạn gửi → chạy `model.predict()` lần 2 → mỗi lần 1 trong 24 layer tự động dùng `forward` đã patch, tự tra `state` để biết có bias hay không (layer không có trong `layer_configs` thì `key_bias_for_layer` trả `None`, chạy y hệt attention gốc) → **intervention**.
 6. Trả cả 2 kết quả (top-k GPS + xác suất + khoảng cách tới ground truth nếu có) về frontend.
 7. Frontend vẽ 2 cột kết quả, vẽ bản đồ với marker của cả baseline (xanh) và intervention (đỏ) và ground truth (nếu có), tra tên địa danh qua Nominatim, cho phép lưu lại để so sánh nhiều lần chạy.
 
@@ -284,3 +281,11 @@ Poll `GET /health` mỗi 2s. `predicting` prop (từ `App.jsx`, bật true ngay 
 - **Không auth, không HTTPS** — chỉ chạy local (`127.0.0.1` ↔ `localhost:5173`), CORS giới hạn đúng origin đó.
 - **Chỉ can thiệp vision tower**, không đụng location encoder / gallery — đúng scope nghiên cứu đã chốt.
 - **CPU-only**, có cap `torch.set_num_threads(8)` để tránh oversubscription trên máy nhiều core — tốc độ vẫn phụ thuộc nhiều vào RAM trống của máy lúc chạy (đã quan sát: máy ít RAM trống → chậm hẳn, không phải do code).
+
+---
+
+## 8. Nhận xét sau thử nghiệm và hướng phát triển
+
+- Backbone CLIP của GeoCLIP có thể biểu diễn ảnh và văn bản/ngôn ngữ trong cùng không gian embedding.
+- Qua thử nghiệm hiện tại, location encoder có vẻ chưa học rõ các đặc trưng ngôn ngữ gắn với quốc gia; đây là một giả thuyết quan sát, cần thêm thí nghiệm định lượng để xác nhận.
+- Hướng phát triển: bổ sung tín hiệu văn bản như tên quốc gia, địa danh hoặc ngôn ngữ khi huấn luyện để căn chỉnh location embedding với text embedding tốt hơn.

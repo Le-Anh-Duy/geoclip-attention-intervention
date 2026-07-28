@@ -1,20 +1,16 @@
-"""Region-scaled attention intervention for CLIP's vision tower.
+"""Region-biased attention intervention for CLIP's vision tower.
 
-The idea (as scoped with the user): after Q*K^T is normalized by softmax,
-scale the attention probability that every query token assigns to each KEY
-patch token by `a` if that patch falls inside a user-selected region, or by
-`b` if it doesn't, then renormalize so each row still sums to 1. This nudges
-every token's aggregated V (and, transitively, the final CLS representation)
-to lean on the selected region a bit more (a > 1) and elsewhere a bit less
-(b < 1). a = b = 1 is a no-op -> identical to the unmodified model.
+Before softmax, add `a` to attention logits for KEY patches inside a selected
+region and `b` to logits outside it. Positive bias attracts attention; negative
+bias repels it. a = b = 0 is a no-op -> identical to the unmodified model.
 
 Applies to every layer independently: each of the 24 CLIPEncoderLayer blocks
 in ViT-L/14 gets its own (a, b), because a caller may want to intervene only
 in a subset of layers.
 
-The CLS token (sequence position 0) is never scaled -- it isn't a spatial
+The CLS token (sequence position 0) is never biased -- it isn't a spatial
 patch, so it has no "inside/outside region" meaning. This is a deliberate
-default, not an oversight: see `_build_key_scale` below.
+default, not an oversight: see `key_bias_for_layer` below.
 """
 import types
 from dataclasses import dataclass, field
@@ -30,24 +26,24 @@ class InterventionState:
     One instance is attached to the model at load time and mutated (not
     replaced) before each forward pass -- see `run_with_intervention`.
     """
-    # {layer_index: (a, b)}. A layer absent from this dict behaves as (1, 1).
+    # {layer_index: (a, b)}. A layer absent from this dict behaves as (0, 0).
     layer_ab: dict = field(default_factory=dict)
     # Bool tensor of length `grid_size * grid_size`, True = patch is inside
     # a user-selected region. None means "no regions selected" (all False).
     in_region_mask: torch.Tensor | None = None
 
-    def key_scale_for_layer(self, layer_idx: int, num_positions: int) -> torch.Tensor | None:
-        """Returns a (num_positions,) scale vector for this layer's keys, or
+    def key_bias_for_layer(self, layer_idx: int, num_positions: int) -> torch.Tensor | None:
+        """Returns a (num_positions,) logit-bias vector for this layer's keys, or
         None if this layer has no active intervention (fast no-op path)."""
-        a, b = self.layer_ab.get(layer_idx, (1.0, 1.0))
-        if a == 1.0 and b == 1.0:
+        a, b = self.layer_ab.get(layer_idx, (0.0, 0.0))
+        if a == 0.0 and b == 0.0:
             return None
         if self.in_region_mask is None:
             return None
-        scale = torch.full((num_positions,), b, dtype=torch.float32)
-        scale[0] = 1.0  # CLS token key: never scaled, see module docstring
-        scale[1:] = torch.where(self.in_region_mask, torch.tensor(a), torch.tensor(b))
-        return scale
+        bias = torch.full((num_positions,), b, dtype=torch.float32)
+        bias[0] = 0.0  # CLS token key: never biased, see module docstring
+        bias[1:].masked_fill_(self.in_region_mask, a)
+        return bias
 
 
 def _intervened_attention_forward(state: InterventionState, layer_idx: int):
@@ -55,9 +51,8 @@ def _intervened_attention_forward(state: InterventionState, layer_idx: int):
 
     Reimplements the same q/k/v projection + eager attention math as
     transformers' `eager_attention_forward` (see
-    transformers/models/clip/modeling_clip.py), except the scaling step is
-    inserted AFTER softmax and BEFORE the matmul with V -- exactly the point
-    in the pipeline the user asked for. We bypass `ALL_ATTENTION_FUNCTIONS`
+    transformers/models/clip/modeling_clip.py), except the bias is inserted
+    BEFORE softmax. We bypass `ALL_ATTENTION_FUNCTIONS`
     entirely so this keeps working regardless of the configured attn
     implementation (eager/sdpa/flash).
     """
@@ -73,14 +68,12 @@ def _intervened_attention_forward(state: InterventionState, layer_idx: int):
         attn_weights = torch.matmul(queries, keys.transpose(-1, -2)) * self.scale
         if attention_mask is not None:
             attn_weights = attn_weights + attention_mask
-        attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32).to(queries.dtype)
 
-        key_scale = state.key_scale_for_layer(layer_idx, attn_weights.shape[-1])
-        if key_scale is not None:
-            # <-- the actual intervention: scale attention probs per-key,
-            # a inside the selected region(s), b outside, then renormalize.
-            attn_weights = attn_weights * key_scale.to(attn_weights.dtype)
-            attn_weights = attn_weights / attn_weights.sum(dim=-1, keepdim=True)
+        key_bias = state.key_bias_for_layer(layer_idx, attn_weights.shape[-1])
+        if key_bias is not None:
+            attn_weights = attn_weights + key_bias.to(attn_weights)
+
+        attn_weights = F.softmax(attn_weights, dim=-1, dtype=torch.float32).to(queries.dtype)
 
         attn_output = torch.matmul(attn_weights, values)
         attn_output = attn_output.transpose(1, 2).contiguous().reshape(*input_shape, -1)

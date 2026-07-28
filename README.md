@@ -1,6 +1,6 @@
 # GeoCLIP attention-intervention sandbox
 
-Manual-region sandbox for testing whether scaling CLIP's vision-tower
+Manual-region sandbox for testing whether biasing CLIP's vision-tower
 attention toward/away from a chosen image region shifts GeoCLIP's predicted
 GPS. Stands in for Grounding DINO boxes until that's wired up — regions are
 drawn by hand in the UI instead of detected.
@@ -42,21 +42,17 @@ Open `http://localhost:5173`. Backend must be reachable at
 
 ## The intervention, and where it lives
 
-Agreed formula: after `softmax(QK^T / sqrt(d))` produces attention
-probabilities, scale the probability every query token assigns to each KEY
-patch — `a` if that patch is inside a user-selected region, `b` if it isn't —
-then renormalize each row back to sum 1. This happens *before* the result is
-multiplied by V, and independently per layer (24 layers in ViT-L/14, each
-with its own `a`/`b`). `a = b = 1` is a no-op.
+Agreed formula: add a per-key bias to `QK^T / sqrt(d)` before softmax — `a`
+for patches inside a user-selected region and `b` outside it. This happens
+independently per layer (24 layers in ViT-L/14). Positive bias attracts
+attention, negative bias repels it, and `a = b = 0` is a no-op.
 
-- **The actual scale-and-renormalize step**: `backend/app/intervention.py:78-83`
-  (`_intervened_attention_forward`, inside `key_scale_for_layer` +
-  the multiply/renormalize lines right after it's called).
+- **The pre-softmax bias step**: `backend/app/intervention.py`
+  (`_intervened_attention_forward`, using `key_bias_for_layer`).
 - **How `a`/`b` are picked per layer, and the CLS-token exemption**:
-  `backend/app/intervention.py:39-50` (`InterventionState.key_scale_for_layer`).
-  Position 0 (CLS) is hardcoded to scale 1 always — it isn't a spatial patch,
-  so "inside/outside region" doesn't apply to it. Change line 48 if you want
-  to experiment with scaling CLS too.
+  `backend/app/intervention.py` (`InterventionState.key_bias_for_layer`).
+  Position 0 (CLS) is hardcoded to bias 0 always — it isn't a spatial patch,
+  so "inside/outside region" doesn't apply to it.
 - **Region → patch-grid mapping** (drawn rectangle → which of the 256 patch
   tokens count as "in region"): `backend/app/intervention.py:118-154`
   (`build_in_region_mask`). This replicates CLIP's own preprocessing
@@ -75,7 +71,8 @@ with its own `a`/`b`). `a = b = 1` is a no-op.
 - Drawn rectangles in `ImageRegionSelector.jsx` → `regions: [{x,y,w,h}]`
   (fractions of the original image) → `build_in_region_mask`.
 - Each row in `LayerControls.jsx` → `layer_configs: {layerIdx: [a, b]}` →
-  `InterventionState.layer_ab`.
+  `InterventionState.layer_ab`. These values are always stored as logits
+  biases. The UI's Scale view displays the exact equivalent `exp(bias)`.
 - Ground-truth lat/lon inputs in `App.jsx` → `ground_truth: {lat, lon}` →
   compared against top-1 prediction via `backend/app/geo_utils.py`
   (Haversine/geodesic distance + the 1/25/200/750/2500 km threshold hits used

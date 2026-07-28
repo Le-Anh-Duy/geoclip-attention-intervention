@@ -91,7 +91,7 @@ function App() {
     }
   }
 
-  const activeLayerCount = Object.values(layerConfigs).filter(([a, b]) => a !== 1 || b !== 1).length
+  const activeLayerCount = Object.values(layerConfigs).filter(([a, b]) => a !== 0 || b !== 0).length
 
   async function handleSaveRun() {
     if (!result || !image) return
