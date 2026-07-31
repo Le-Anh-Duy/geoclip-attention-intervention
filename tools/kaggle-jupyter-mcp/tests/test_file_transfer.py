@@ -12,6 +12,7 @@ from kaggle_jupyter_mcp.file_transfer import (
     resolve_local_path,
     validate_chunk_size,
 )
+from kaggle_jupyter_mcp.workflow_tools import build_shell_code
 
 
 @pytest.mark.parametrize(
@@ -68,3 +69,13 @@ def test_upload_finalizer_uses_kaggle_temp_and_hash_verification():
 def test_validate_chunk_size_rejects_out_of_range(value):
     with pytest.raises(ValueError):
         validate_chunk_size(value)
+
+
+def test_shell_bridge_runs_bash_and_reports_exit_code():
+    code = build_shell_code("printf '%s\\n' hello | wc -l", "/kaggle/temp")
+
+    compile(code, "<shell-bridge>", "exec")
+    assert "['bash', '-lc'" in code
+    assert "printf '%s\\\\n' hello | wc -l" in code
+    assert "/kaggle/temp" in code
+    assert "MCP shell exit code" in code

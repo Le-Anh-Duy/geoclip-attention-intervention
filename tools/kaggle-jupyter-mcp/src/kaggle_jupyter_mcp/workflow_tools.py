@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Annotated
 
 from mcp.types import ImageContent, ToolAnnotations
@@ -10,13 +11,44 @@ from pydantic import Field
 from kaggle_jupyter_mcp.file_transfer import (
     DEFAULT_CHUNK_MIB,
     FileTransferService,
+    normalize_server_file_path,
     validate_chunk_size,
 )
 from kaggle_jupyter_mcp.visible_execution import VisibleNotebookRunner
 
 
+def build_shell_code(command: str, cwd: str) -> str:
+    """Build the small Python bridge used to run an ordinary Bash command."""
+
+    normalized_cwd = normalize_server_file_path(cwd)
+    return f"""from pathlib import Path
+import subprocess, sys
+working = Path('/kaggle/working').resolve()
+temp_root = Path('/kaggle/temp').resolve()
+raw_cwd = {json.dumps(normalized_cwd)}
+shell_cwd = Path(raw_cwd)
+shell_cwd = shell_cwd.resolve() if shell_cwd.is_absolute() else (working / shell_cwd).resolve()
+if not any(shell_cwd == root or root in shell_cwd.parents for root in (working, temp_root)):
+    raise ValueError('cwd must remain under /kaggle/working or /kaggle/temp')
+if not shell_cwd.is_dir():
+    raise NotADirectoryError(str(shell_cwd))
+completed = subprocess.run(
+    ['bash', '-lc', {json.dumps(command)}],
+    cwd=shell_cwd,
+    text=True,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+)
+if completed.stdout:
+    print(completed.stdout, end='' if completed.stdout.endswith('\\n') else '\\n')
+if completed.stderr:
+    print(completed.stderr, end='' if completed.stderr.endswith('\\n') else '\\n', file=sys.stderr)
+print(f'[MCP shell exit code: {{completed.returncode}}]')
+"""
+
+
 def register_workflow_tools(mcp) -> VisibleNotebookRunner:
-    """Replace ephemeral execute_code and add bidirectional transfer tools."""
+    """Add explicit shell, visible-notebook, and bidirectional transfer tools."""
 
     if getattr(mcp, "_kaggle_workflow_tools_installed", False):
         return mcp._kaggle_visible_notebook_runner
@@ -26,13 +58,8 @@ def register_workflow_tools(mcp) -> VisibleNotebookRunner:
     runner = VisibleNotebookRunner(server.execute_code)
     transfer = FileTransferService(runner)
 
-    # The upstream implementation executes against a kernel but does not save a
-    # cell. Preserve its callable for transfer internals, and expose a visible
-    # implementation under the same public tool name.
-    mcp.remove_tool("execute_code")
-
     @mcp.tool(
-        name="execute_code",
+        name="execute_code_in_notebook",
         title="Execute Code in a Visible Notebook",
         annotations=ToolAnnotations(title="Execute Code in a Visible Notebook", destructiveHint=True),
         structured_output=False,
@@ -61,6 +88,33 @@ def register_workflow_tools(mcp) -> VisibleNotebookRunner:
             notebook_name=notebook_name,
         )
         return result.as_mcp_content()
+
+    @mcp.tool(
+        name="execute_shell",
+        title="Execute Bash Command",
+        annotations=ToolAnnotations(title="Execute Bash Command", destructiveHint=True),
+        structured_output=False,
+    )
+    async def execute_shell(
+        command: Annotated[
+            str, Field(description="Ordinary Bash command, for example: ls -la")
+        ],
+        timeout: Annotated[
+            int, Field(description="Maximum execution seconds (0 uses server default)", ge=0)
+        ] = 0,
+        cwd: Annotated[
+            str,
+            Field(
+                description="Working directory under /kaggle/working or /kaggle/temp"
+            ),
+        ] = "/kaggle/working",
+    ) -> list[str | ImageContent]:
+        """Run an ordinary Bash command and return stdout, stderr, and its exit code."""
+
+        outputs = await runner.original_execute_code(
+            code=build_shell_code(command, cwd), timeout=timeout, kernel_id=None
+        )
+        return outputs if isinstance(outputs, list) else [outputs]
 
     @mcp.tool(
         annotations=ToolAnnotations(title="Upload Local File to Kaggle", destructiveHint=True),

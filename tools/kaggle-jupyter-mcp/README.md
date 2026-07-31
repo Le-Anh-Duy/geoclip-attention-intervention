@@ -15,20 +15,25 @@ upstream standalone server normally requires that endpoint for cell operations.
 - rejects stale writes when a notebook changed after it was read;
 - adds REST tools for files, text editing, checkpoints, kernels, sessions,
   terminals, server status/capability probing, kernelspecs, and nbconvert;
-- replaces ephemeral `execute_code` with visible execution: it creates or
-  connects `mcp_execution.ipynb`, appends a code cell, executes the notebook's
-  kernel, saves the output in the cell, and returns the same output to MCP;
+- adds `execute_shell` for ordinary Bash commands with stdout, stderr, and exit
+  code returned to MCP;
+- adds opt-in visible execution through `execute_code_in_notebook`, which
+  creates/connects `mcp_execution.ipynb`, saves the cell and its output, and
+  returns that output to MCP;
 - transfers files in both directions with chunking and SHA-256 verification.
   Upload chunks are written directly by the kernel to `/kaggle/temp` before the
   verified file is moved to `/kaggle/working` or its requested temp path.
 
-## Visible execution
+## Execution tools
 
-`execute_code` accepts optional `notebook_path` and `notebook_name` arguments.
-The default notebook is `mcp_execution.ipynb`. Every call remains visible in
-JupyterLab and returns its stdout, rich display data, or error output to the MCP
-caller. Use `insert_execute_code_cell` when an explicit notebook is already
-active and a precise insertion index is required.
+- `execute_code`: upstream direct Python/IPython kernel execution. It is not
+  persisted as a notebook cell.
+- `execute_shell`: ordinary Bash such as `pwd`, `ls -la`, or a pipeline. It is
+  not persisted as a notebook cell.
+- `execute_code_in_notebook`: visible, persisted execution. It accepts optional
+  `notebook_path` and `notebook_name`; the default is `mcp_execution.ipynb`.
+- `insert_execute_code_cell`: visible execution at an explicit cell index in an
+  already active notebook.
 
 ## File transfer
 
