@@ -31,3 +31,6 @@
 
 # Recoverable metadata from repositories that were flattened into this repo
 .nested-git-backup/
+
+# Maintained separately on feat/standalone-kaggle-jupyter-mcp
+/tools/kaggle-jupyter-mcp/
