@@ -14,7 +14,34 @@ upstream standalone server normally requires that endpoint for cell operations.
 - creates a checkpoint before notebook/file replacement when supported;
 - rejects stale writes when a notebook changed after it was read;
 - adds REST tools for files, text editing, checkpoints, kernels, sessions,
-  terminals, server status/capability probing, kernelspecs, and nbconvert.
+  terminals, server status/capability probing, kernelspecs, and nbconvert;
+- replaces ephemeral `execute_code` with visible execution: it creates or
+  connects `mcp_execution.ipynb`, appends a code cell, executes the notebook's
+  kernel, saves the output in the cell, and returns the same output to MCP;
+- transfers files in both directions with chunking and SHA-256 verification.
+  Upload chunks are written directly by the kernel to `/kaggle/temp` before the
+  verified file is moved to `/kaggle/working` or its requested temp path.
+
+## Visible execution
+
+`execute_code` accepts optional `notebook_path` and `notebook_name` arguments.
+The default notebook is `mcp_execution.ipynb`. Every call remains visible in
+JupyterLab and returns its stdout, rich display data, or error output to the MCP
+caller. Use `insert_execute_code_cell` when an explicit notebook is already
+active and a precise insertion index is required.
+
+## File transfer
+
+- `upload_local_file_to_jupyter`: local file to a relative
+  `/kaggle/working` path or an absolute `/kaggle/working/...` or
+  `/kaggle/temp/...` path.
+- `download_jupyter_file_to_local`: the reverse direction with the same remote
+  path rules.
+
+Both tools log their verification cells in `mcp_file_transfer.ipynb`. Local
+access is restricted to `KAGGLE_JUPYTER_LOCAL_ROOTS`, separated with the host
+OS path separator. If unset, only the MCP process working directory is allowed.
+Existing destination files are preserved unless `overwrite=true` is explicit.
 
 The package pins the upstream version so an update cannot silently break the
 compatibility patch.
@@ -57,6 +84,7 @@ JUPYTER_URL = "<existing signed Kaggle proxy URL>"
 JUPYTER_TOKEN = "<existing token>"
 ALLOW_IMG_OUTPUT = "true"
 KAGGLE_JUPYTER_AUTO_CHECKPOINT = "true"
+KAGGLE_JUPYTER_LOCAL_ROOTS = "E:\\GHuy\\Study\\Thesis\\geoclip-attention-intervention"
 ```
 
 Restart Codex after changing the MCP command. The signed Kaggle proxy URL is

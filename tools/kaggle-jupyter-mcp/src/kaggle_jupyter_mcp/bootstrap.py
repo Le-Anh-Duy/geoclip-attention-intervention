@@ -19,6 +19,8 @@ def install() -> None:
     from jupyter_mcp_server import server
 
     from kaggle_jupyter_mcp.extra_tools import register_extra_tools
+    from kaggle_jupyter_mcp.workflow_tools import register_workflow_tools
 
     register_extra_tools(server.mcp)
+    register_workflow_tools(server.mcp)
     _installed = True
