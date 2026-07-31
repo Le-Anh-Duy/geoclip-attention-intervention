@@ -198,6 +198,11 @@ class RestNotebookModel(MutableSequence[dict[str, Any]]):
         cell["source"] = source
         self[index] = cell
 
+    def get_cell_source(self, index: int) -> str:
+        """Return source text using the interface expected by upstream cell tools."""
+
+        return _source_text(self[index].get("source"))
+
     def delete_cell(self, index: int) -> dict[str, Any]:
         return self.__delitem__(index)
 

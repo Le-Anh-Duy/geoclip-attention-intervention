@@ -163,3 +163,20 @@ def test_insert_cell_respects_pre_cell_id_nbformat_minor():
 
     assert "id" not in model[0]
     nbformat.validate(nbformat.from_dict(model.as_dict()))
+
+
+def test_get_and_set_cell_source_match_upstream_tool_interface():
+    notebook = nbformat.v4.new_notebook(cells=[nbformat.v4.new_markdown_cell()])
+    notebook["cells"][0]["source"] = ["first line\n", "second line"]
+    model = RestNotebookModel(
+        client=FakeContentsClient(notebook),
+        path="test.ipynb",
+        notebook=notebook,
+        last_modified="now",
+    )
+
+    assert model.get_cell_source(0) == "first line\nsecond line"
+
+    model.set_cell_source(0, "replacement")
+
+    assert model.get_cell_source(0) == "replacement"
