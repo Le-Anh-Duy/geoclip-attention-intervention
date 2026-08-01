@@ -26,7 +26,9 @@ def build_shell_code(command: str, cwd: str) -> str:
     return f"""from pathlib import Path
 import subprocess, sys
 working = Path('/kaggle/working').resolve()
-temp_root = Path('/kaggle/temp').resolve()
+temp_root = Path('/kaggle/temp')
+temp_root.mkdir(parents=True, exist_ok=True)
+temp_root = temp_root.resolve()
 raw_cwd = {json.dumps(normalized_cwd)}
 shell_cwd = Path(raw_cwd)
 shell_cwd = shell_cwd.resolve() if shell_cwd.is_absolute() else (working / shell_cwd).resolve()

@@ -133,6 +133,7 @@ def test_shell_bridge_runs_bash_and_reports_exit_code():
     assert "['bash', '-lc'" in code
     assert "printf '%s\\\\n' hello | wc -l" in code
     assert "/kaggle/temp" in code
+    assert "temp_root.mkdir(parents=True, exist_ok=True)" in code
     assert "MCP shell exit code" in code
 
 
