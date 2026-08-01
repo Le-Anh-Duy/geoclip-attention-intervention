@@ -8,14 +8,24 @@ import json
 import os
 from base64 import b64decode, b64encode
 from pathlib import Path, PurePosixPath
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from kaggle_jupyter_mcp.visible_execution import VisibleNotebookRunner
 
 DEFAULT_CHUNK_MIB = 4
-MAX_CHUNK_MIB = 32
+MAX_CHUNK_MIB = 8
 META_PREFIX = "KAGGLE_MCP_TRANSFER_META "
 CHUNK_PREFIX = "KAGGLE_MCP_TRANSFER_CHUNK "
+ProgressCallback = Callable[[dict[str, Any]], Awaitable[None] | None]
+
+
+async def _report_progress(callback: ProgressCallback | None, **values: Any) -> None:
+    if callback is None:
+        return
+    result = callback(values)
+    if result is not None:
+        await result
 
 
 def _allowed_local_roots() -> tuple[Path, ...]:
@@ -105,6 +115,9 @@ class FileTransferService:
         overwrite: bool,
         chunk_size_mib: int,
         timeout: int,
+        progress: ProgressCallback | None = None,
+        cancel_event: asyncio.Event | None = None,
+        resume: bool = False,
     ) -> list[Any]:
         source = resolve_local_path(local_path, must_exist=True)
         if not source.is_file():
@@ -112,32 +125,83 @@ class FileTransferService:
         destination = normalize_server_file_path(server_path)
         chunk_size = chunk_size_mib * 1024 * 1024
         size = source.stat().st_size
+        await _report_progress(
+            progress, stage="hashing", transferred_bytes=0, total_bytes=size
+        )
         sha256 = await asyncio.to_thread(_sha256_file, source)
         transfer_id = hashlib.sha256(f"{destination}:{sha256}".encode()).hexdigest()[:16]
         part_count = max(1, (size + chunk_size - 1) // chunk_size)
+        remote_temp = f"/kaggle/temp/kaggle_mcp_upload_{transfer_id}.partial"
+        await _report_progress(
+            progress,
+            stage="connecting",
+            transferred_bytes=0,
+            total_bytes=size,
+            total_parts=part_count,
+            remote_transfer_id=transfer_id,
+            partial_path=remote_temp,
+        )
 
         async with self.runner.lock:
             _, _, kernel_id = await self.runner.ensure_connected(
                 notebook_path, notebook_name
             )
-            remote_temp = f"/kaggle/temp/kaggle_mcp_upload_{transfer_id}.partial"
+            start_offset = 0
+            if resume:
+                outputs = await self.runner.run_hidden(
+                    self._upload_partial_size_code(remote_temp),
+                    timeout=timeout,
+                    kernel_id=kernel_id,
+                )
+                partial_meta = _parse_meta(outputs)
+                start_offset = int(partial_meta["size"])
+                if start_offset > size or (
+                    start_offset != size and start_offset % chunk_size != 0
+                ):
+                    raise RuntimeError(
+                        "Remote partial size is incompatible with this local file/chunk size"
+                    )
+            await _report_progress(
+                progress,
+                stage="uploading",
+                transferred_bytes=start_offset,
+                total_bytes=size,
+                completed_parts=min(start_offset // chunk_size, part_count),
+                total_parts=part_count,
+                resumed_bytes=start_offset,
+            )
             with source.open("rb") as stream:
-                for index in range(part_count):
+                stream.seek(start_offset)
+                offset = start_offset
+                while offset < size:
+                    if cancel_event is not None and cancel_event.is_set():
+                        raise asyncio.CancelledError
                     data = stream.read(chunk_size)
                     encoded = b64encode(data).decode("ascii")
-                    mode = "wb" if index == 0 else "ab"
-                    chunk_code = f"""from pathlib import Path
-import base64
-path = Path({json.dumps(remote_temp)})
-path.parent.mkdir(parents=True, exist_ok=True)
-with path.open({mode!r}) as stream:
-    stream.write(base64.b64decode({json.dumps(encoded)}))
-print(path.stat().st_size)
-"""
+                    chunk_code = self._upload_chunk_code(
+                        remote_temp=remote_temp,
+                        offset=offset,
+                        encoded=encoded,
+                        reset=offset == 0 and not resume,
+                    )
                     await self.runner.run_hidden(
                         chunk_code, timeout=timeout, kernel_id=kernel_id
                     )
+                    offset += len(data)
+                    await _report_progress(
+                        progress,
+                        stage="uploading",
+                        transferred_bytes=offset,
+                        total_bytes=size,
+                        completed_parts=min(
+                            (offset + chunk_size - 1) // chunk_size, part_count
+                        ),
+                        total_parts=part_count,
+                    )
 
+            await _report_progress(
+                progress, stage="verifying", transferred_bytes=size, total_bytes=size
+            )
             code = self._upload_finalize_code(
                 destination=destination,
                 transfer_id=transfer_id,
@@ -145,18 +209,49 @@ print(path.stat().st_size)
                 expected_sha256=sha256,
                 overwrite=overwrite,
             )
-            visible = await self.runner.run_locked(
-                code,
-                timeout=timeout,
-                notebook_path=notebook_path,
-                notebook_name=notebook_name,
+            finalize_outputs = await self.runner.run_hidden(
+                code, timeout=timeout, kernel_id=kernel_id
             )
-        meta = _parse_meta(visible.outputs)
+        meta = _parse_meta(finalize_outputs)
+        await _report_progress(
+            progress,
+            stage="completed",
+            transferred_bytes=size,
+            total_bytes=size,
+            sha256=meta["sha256"],
+        )
         return [
             f"Uploaded {source} -> {meta['server_path']}\n"
             f"Bytes: {meta['size']}\nSHA-256: {meta['sha256']}\nParts: {part_count}",
-            *visible.as_mcp_content(),
+            *finalize_outputs,
         ]
+
+    @staticmethod
+    def _upload_partial_size_code(remote_temp: str) -> str:
+        return f"""from pathlib import Path
+import json
+path = Path({json.dumps(remote_temp)})
+meta = {{'direction':'upload','partial_path':str(path),'size':path.stat().st_size if path.exists() else 0}}
+print({META_PREFIX!r} + json.dumps(meta, sort_keys=True))
+"""
+
+    @staticmethod
+    def _upload_chunk_code(
+        *, remote_temp: str, offset: int, encoded: str, reset: bool
+    ) -> str:
+        return f"""from pathlib import Path
+import base64
+path = Path({json.dumps(remote_temp)})
+path.parent.mkdir(parents=True, exist_ok=True)
+if {reset!r}:
+    path.unlink(missing_ok=True)
+actual_size = path.stat().st_size if path.exists() else 0
+if actual_size != {offset}:
+    raise RuntimeError(f'Remote partial offset mismatch: expected {offset}, got {{actual_size}}')
+with path.open('ab') as stream:
+    stream.write(base64.b64decode({json.dumps(encoded)}))
+print(path.stat().st_size)
+"""
 
     @staticmethod
     def _upload_finalize_code(
@@ -205,6 +300,10 @@ print({META_PREFIX!r} + json.dumps(meta, sort_keys=True))
         overwrite: bool,
         chunk_size_mib: int,
         timeout: int,
+        progress: ProgressCallback | None = None,
+        cancel_event: asyncio.Event | None = None,
+        resume: bool = False,
+        keep_partial_on_failure: bool = False,
     ) -> list[Any]:
         source = normalize_server_file_path(server_path)
         destination = resolve_local_path(local_path, must_exist=False)
@@ -219,6 +318,9 @@ print({META_PREFIX!r} + json.dumps(meta, sort_keys=True))
         complete = False
 
         async with self.runner.lock:
+            await _report_progress(
+                progress, stage="connecting", transferred_bytes=0, total_bytes=0
+            )
             _, _, kernel_id = await self.runner.ensure_connected(
                 notebook_path, notebook_name
             )
@@ -232,12 +334,37 @@ print({META_PREFIX!r} + json.dumps(meta, sort_keys=True))
             meta = _parse_meta(inspect_outputs)
             part_count = max(1, (meta["size"] + chunk_size - 1) // chunk_size)
             digest = hashlib.sha256()
+            start_offset = 0
+            if resume and partial.exists():
+                start_offset = partial.stat().st_size
+                if start_offset > meta["size"] or (
+                    start_offset != meta["size"] and start_offset % chunk_size != 0
+                ):
+                    raise RuntimeError(
+                        "Local partial size is incompatible with the remote file/chunk size"
+                    )
+                with partial.open("rb") as existing:
+                    for data in iter(lambda: existing.read(1024 * 1024), b""):
+                        digest.update(data)
+            await _report_progress(
+                progress,
+                stage="downloading",
+                transferred_bytes=start_offset,
+                total_bytes=meta["size"],
+                completed_parts=min(start_offset // chunk_size, part_count),
+                total_parts=part_count,
+                resumed_bytes=start_offset,
+                sha256=meta["sha256"],
+            )
             try:
-                with partial.open("wb") as output:
-                    for index in range(part_count):
+                mode = "ab" if start_offset else "wb"
+                with partial.open(mode) as output:
+                    for offset in range(start_offset, meta["size"], chunk_size):
+                        if cancel_event is not None and cancel_event.is_set():
+                            raise asyncio.CancelledError
                         stage_code = self._download_stage_code(
                             source=source,
-                            offset=index * chunk_size,
+                            offset=offset,
                             length=chunk_size,
                         )
                         outputs = await self.runner.run_hidden(
@@ -246,28 +373,52 @@ print({META_PREFIX!r} + json.dumps(meta, sort_keys=True))
                         data = _parse_chunk(outputs)
                         digest.update(data)
                         output.write(data)
+                        transferred = offset + len(data)
+                        await _report_progress(
+                            progress,
+                            stage="downloading",
+                            transferred_bytes=transferred,
+                            total_bytes=meta["size"],
+                            completed_parts=min(
+                                (transferred + chunk_size - 1) // chunk_size,
+                                part_count,
+                            ),
+                            total_parts=part_count,
+                        )
+                await _report_progress(
+                    progress,
+                    stage="verifying",
+                    transferred_bytes=meta["size"],
+                    total_bytes=meta["size"],
+                )
                 actual_sha256 = digest.hexdigest()
                 if partial.stat().st_size != meta["size"] or actual_sha256 != meta["sha256"]:
                     raise RuntimeError("Downloaded file failed size/SHA-256 verification")
                 os.replace(partial, destination)
                 complete = True
             finally:
-                if not complete and partial.exists():
+                if not complete and not keep_partial_on_failure and partial.exists():
                     partial.unlink()
 
-            confirmation = await self.runner.run_locked(
+            confirmation = await self.runner.run_hidden(
                 "print(" + json.dumps(
                     f"MCP download verified: {Path(destination).name} | "
                     f"{meta['size']} bytes | SHA-256 {meta['sha256']}"
                 ) + ")",
                 timeout=timeout,
-                notebook_path=notebook_path,
-                notebook_name=notebook_name,
+                kernel_id=kernel_id,
             )
+        await _report_progress(
+            progress,
+            stage="completed",
+            transferred_bytes=meta["size"],
+            total_bytes=meta["size"],
+            sha256=meta["sha256"],
+        )
         return [
             f"Downloaded {meta['server_path']} -> {destination}\n"
             f"Bytes: {meta['size']}\nSHA-256: {meta['sha256']}\nParts: {part_count}",
-            *confirmation.as_mcp_content(),
+            *confirmation,
         ]
 
     @staticmethod

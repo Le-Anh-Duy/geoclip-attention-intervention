@@ -1,75 +1,92 @@
-# Kaggle Jupyter MCP compatibility layer
+# Kaggle Jupyter MCP
 
-This package extends `jupyter-mcp-server==1.2.0` for Kaggle's managed Jupyter
-proxy. Kaggle exposes kernels, sessions, terminals, nbconvert, and the Contents
-API, but it does not expose Jupyter's real-time collaboration endpoint. The
-upstream standalone server normally requires that endpoint for cell operations.
+An opinionated MCP layer for controlling a Kaggle Jupyter runtime from a local
+workspace. It pins `jupyter-mcp-server==1.2.0`, supports Kaggle's signed proxy
+URLs, returns execution output to the client, runs local notebooks on raw Kaggle
+kernels, and provides monitored resumable file transfer.
 
-## What the compatibility layer changes
+The public tool registry is deliberately curated. Upstream server-notebook cell
+tools, synchronous transfer tools, terminals, sessions, checkpoints, nbconvert,
+and JupyterLab settings/workspaces are hidden because they are redundant,
+unreliable on Kaggle, or too easy to select accidentally.
 
-- keeps upstream RTC/WebSocket behavior when `/api/collaboration/session` is
-  available;
-- falls back to `/api/contents` for real nbformat `.ipynb` documents;
-- preserves cell execution through the existing Kaggle kernel WebSocket;
-- creates a checkpoint before notebook/file replacement when supported;
-- rejects stale writes when a notebook changed after it was read;
-- adds REST tools for files, text editing, checkpoints, kernels, sessions,
-  terminals, server status/capability probing, kernelspecs, and nbconvert;
-- adds `execute_shell` for ordinary Bash commands with stdout, stderr, and exit
-  code returned to MCP;
-- adds opt-in visible execution through `execute_code_in_notebook`, which
-  creates/connects `mcp_execution.ipynb`, saves the cell and its output, and
-  returns that output to MCP;
-- transfers files in both directions with chunking and SHA-256 verification.
-  Upload chunks are written directly by the kernel to `/kaggle/temp` before the
-  verified file is moved to `/kaggle/working` or its requested temp path.
+## Tool contract
 
-## Execution tools
+### Connection and kernels
 
-- `execute_code`: upstream direct Python/IPython kernel execution. It is not
-  persisted as a notebook cell.
-- `execute_shell`: ordinary Bash such as `pwd`, `ls -la`, or a pipeline. It is
-  not persisted as a notebook cell.
-- `execute_code_in_notebook`: visible, persisted execution. It accepts optional
-  `notebook_path` and `notebook_name`; the default is `mcp_execution.ipynb`.
-- `insert_execute_code_cell`: visible execution at an explicit cell index in an
-  already active notebook.
+| Tool | Use it for |
+|---|---|
+| `connect_to_jupyter` | Switch to a new VS Code-compatible URL/token without restarting MCP or Codex. Reconnect local notebooks afterward. |
+| `get_server_status` | Verify the current server is reachable and see aggregate activity. |
+| `list_kernels` | Discover raw kernel UUIDs and states. |
+| `get_kernel` | Monitor one kernel without changing it. |
+| `start_server_kernel` | Create an unattached raw kernel for ad-hoc work. Prefer `connect_local_notebook` for notebooks. |
+| `interrupt_server_kernel` | Stop currently running code but preserve kernel variables. |
+| `restart_server_kernel` | Erase variables/model state and restart one kernel. |
+| `shutdown_server_kernel` | Permanently terminate one raw kernel. |
 
-## File transfer
+### Execution
 
-- `upload_local_file_to_jupyter`: local file to a relative
-  `/kaggle/working` path or an absolute `/kaggle/working/...` or
-  `/kaggle/temp/...` path.
-- `download_jupyter_file_to_local`: the reverse direction with the same remote
-  path rules.
+| Tool | Use it for |
+|---|---|
+| `execute_python` | Run ad-hoc Python/IPython and receive stdout, errors, rich output, and images. Never pass Bash. |
+| `execute_shell` | Run ordinary Bash under `/kaggle/working` or `/kaggle/temp`; returns stdout, stderr, and exit code. Never pass Python source. |
 
-Both tools log their verification cells in `mcp_file_transfer.ipynb`. Local
-access is restricted to `KAGGLE_JUPYTER_LOCAL_ROOTS`, separated with the host
-OS path separator. If unset, only the MCP process working directory is allowed.
-Existing destination files are preserved unless `overwrite=true` is explicit.
+### Local notebook on Kaggle kernel
 
-The package pins the upstream version so an update cannot silently break the
-compatibility patch.
+The `.ipynb` stays local. No notebook is uploaded to Kaggle.
 
-## Important Kaggle limitation
+| Tool | Use it for |
+|---|---|
+| `connect_local_notebook` | Bind an existing local `.ipynb` to an existing or newly created raw Kaggle kernel. |
+| `execute_local_notebook_cell` | Execute one zero-based local code cell remotely, return its output, and save output/execution count into the local file. |
+| `start_local_notebook_run` | Start all selected code cells in the background and immediately return `run_id`. |
+| `get_local_notebook_run_status` | Poll current cell, percentage, output previews, final state, and errors. |
+| `cancel_local_notebook_run` | Interrupt the kernel and cancel an active notebook run. |
+| `close_local_notebook` | Remove the binding and optionally shut down its kernel; never deletes the local notebook. |
 
-Kaggle exposes the active browser notebook as:
+If the local file changes while a cell is running, its outputs are returned but
+not written over the newer file.
 
-```text
-.virtual_documents/__notebook_source__.ipynb
-```
+### Remote files
 
-Despite its name, that resource is a plain concatenated Python source file, not
-nbformat JSON, and contains no cell boundaries. It can be read or edited with
-`read_server_file` and `edit_server_text`, but it cannot truthfully support
-index-based notebook cell operations. Kaggle's browser may also regenerate the
-virtual file. Use a real `.ipynb` stored under `/kaggle/working` when durable
-cell-level edits are required.
+| Tool | Use it for |
+|---|---|
+| `list_files` | Explore remote Jupyter/Kaggle files only. |
+| `read_server_file` | Read one remote regular file, not a local file or notebook cell. |
+| `write_server_file` | Completely replace a remote regular text/binary file. Do not use it to create runnable notebooks. |
+| `edit_server_text` | Conflict-checked literal replacement in a remote text file. |
+| `rename_server_path` | Rename/move one exact remote path. |
+| `copy_server_path` | Copy remote-to-remote; this is not local transfer. |
+| `delete_server_path` | Delete one exact remote path after resolving it. |
 
-## Codex configuration
+### Monitored file transfer
 
-Clone this branch into a dedicated directory, then replace the command and
-arguments of the existing MCP entry while keeping its secret URL/token values:
+| Tool | Use it for |
+|---|---|
+| `start_upload_local_file_to_jupyter` | Start resumable local-to-Kaggle upload and immediately return `transfer_id`. |
+| `start_download_jupyter_file_to_local` | Start resumable Kaggle-to-local download and immediately return `transfer_id`. |
+| `get_file_transfer_status` | Poll bytes, percentage, chunks, speed, ETA, partial path, result, or error. |
+| `list_file_transfers` | Recover recent transfer IDs in the current MCP process. |
+| `cancel_file_transfer` | Cancel while retaining a compatible partial file for resume. |
+
+Local access is restricted to `KAGGLE_JUPYTER_LOCAL_ROOTS`. Remote transfer
+paths are restricted to `/kaggle/working` and `/kaggle/temp`. Chunks are capped
+at 8 MiB because base64 expansion can exceed Kaggle's WebSocket message limit.
+Every final file is verified by byte size and SHA-256 before replacement.
+
+## Why server-notebook tools are hidden
+
+Kaggle exposes the active browser document at
+`.virtual_documents/__notebook_source__.ipynb`, but it is concatenated Python
+text without trustworthy cell boundaries. Some Kaggle runtimes also return an
+empty collaborative notebook model even when a valid `.ipynb` exists through
+the Contents API. Consequently `use_notebook`, `execute_cell`,
+`execute_code_in_notebook`, and related upstream tools are not part of the
+public API. Local notebook tools use a raw kernel and standard nbformat files,
+which avoids that ambiguity.
+
+## Configuration
 
 ```toml
 [mcp_servers.kaggle_jupyter]
@@ -85,27 +102,23 @@ tool_timeout_sec = 900
 enabled = true
 
 [mcp_servers.kaggle_jupyter.env]
-JUPYTER_URL = "<existing signed Kaggle proxy URL>"
-JUPYTER_TOKEN = "<existing token>"
+JUPYTER_URL = "<signed Kaggle proxy URL>"
+JUPYTER_TOKEN = "<optional separate token>"
 ALLOW_IMG_OUTPUT = "true"
-KAGGLE_JUPYTER_AUTO_CHECKPOINT = "true"
-KAGGLE_JUPYTER_LOCAL_ROOTS = "C:\\path\\to\\your\\workspace"
+KAGGLE_JUPYTER_LOCAL_ROOTS = "C:\\path\\to\\workspace"
 ```
 
-Restart Codex after changing the MCP command. The signed Kaggle proxy URL is
-session-scoped and still needs to be refreshed when Kaggle creates a new
-interactive runtime.
+Changing the configured executable requires restarting Codex. Changing only the
+Kaggle URL does not: call `connect_to_jupyter` at runtime. Signed URLs grant
+access to the runtime and must not be logged or shared.
 
 ## Development
 
 ```powershell
 uv sync --extra test
 uv run pytest -q
+ruff check .
 ```
 
-The integration smoke test reads `JUPYTER_URL` and `JUPYTER_TOKEN` from the
-environment and uses a temporary notebook:
-
-```powershell
-uv run python scripts/smoke_test.py
-```
+`scripts/transfer_smoke_test.py` performs upload, progress polling, cancellation,
+resume, download, and SHA-256 verification against a live Kaggle runtime.

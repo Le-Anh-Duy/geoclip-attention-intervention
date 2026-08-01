@@ -101,9 +101,9 @@ def test_download_inspection_does_not_mutate_source_notebook(tmp_path, monkeypat
     )
 
     assert destination.read_bytes() == payload
-    assert len(runner.hidden_calls) == 2
-    assert len(runner.visible_calls) == 1
-    assert "'direction':'download'" not in runner.visible_calls[0]
+    assert len(runner.hidden_calls) == 3
+    assert len(runner.visible_calls) == 0
+    assert all("'direction':'download'" not in code for code in runner.visible_calls)
 
 
 def test_upload_finalizer_uses_kaggle_temp_and_hash_verification():
@@ -120,7 +120,7 @@ def test_upload_finalizer_uses_kaggle_temp_and_hash_verification():
     assert "failed size/SHA-256 verification" in code
 
 
-@pytest.mark.parametrize("value", [0, 33])
+@pytest.mark.parametrize("value", [0, 9])
 def test_validate_chunk_size_rejects_out_of_range(value):
     with pytest.raises(ValueError):
         validate_chunk_size(value)
@@ -134,3 +134,16 @@ def test_shell_bridge_runs_bash_and_reports_exit_code():
     assert "printf '%s\\\\n' hello | wc -l" in code
     assert "/kaggle/temp" in code
     assert "MCP shell exit code" in code
+
+
+def test_upload_chunk_requires_exact_remote_offset():
+    code = FileTransferService._upload_chunk_code(
+        remote_temp="/kaggle/temp/partial.bin",
+        offset=1024,
+        encoded="ZGF0YQ==",
+        reset=False,
+    )
+
+    compile(code, "<upload-chunk>", "exec")
+    assert "actual_size != 1024" in code
+    assert "Remote partial offset mismatch" in code
