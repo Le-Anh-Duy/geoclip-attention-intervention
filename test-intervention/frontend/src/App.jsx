@@ -75,7 +75,7 @@ function App() {
 
   async function handleRun() {
     if (!image) {
-      setError('Chưa chọn ảnh')
+      setError('Please select an image')
       return
     }
     setLoading(true)
@@ -98,7 +98,7 @@ function App() {
     const thumbnail = await makeThumbnail(image)
     const entry = {
       id: Date.now(),
-      savedAt: new Date().toLocaleString('vi-VN'),
+      savedAt: new Date().toLocaleString('en-US'),
       thumbnail,
       regionCount: regions.length,
       activeLayerCount,
@@ -129,27 +129,31 @@ function App() {
           <StatusBadge predicting={loading} />
         </div>
         <p className="app-subtitle">
-          Vẽ vùng ảnh cần chú ý, chỉnh hệ số <code>a</code>/<code>b</code> theo từng layer attention, so sánh với
-          baseline &mdash; không cần Grounding DINO.
+          Draw regions of interest, tune <code>a</code>/<code>b</code> for each attention layer, and compare the result
+          with the baseline &mdash; no Grounding DINO required.
         </p>
       </header>
+
+      <a className="docs-link" href="./docs.html" aria-label="Open documentation" title="Documentation">
+        ?
+      </a>
 
       {error && <p className="error">⚠ {error}</p>}
 
       <div className="layout">
         <section className="panel">
-          <h2 className="panel-title">1. Ảnh &amp; vùng chú ý</h2>
+          <h2 className="panel-title">1. Image &amp; regions of interest</h2>
           <ImageRegionSelector onImageChange={setImage} regions={regions} onRegionsChange={setRegions} />
 
-          <h2 className="panel-title panel-title-spaced">2. Ground truth (tuỳ chọn)</h2>
+          <h2 className="panel-title panel-title-spaced">2. Ground truth (optional)</h2>
           <div className="ground-truth">
             <label>
               <span>Lat</span>
-              <input value={gtLat} onChange={(e) => setGtLat(e.target.value)} placeholder="vd 22.0964" />
+              <input value={gtLat} onChange={(e) => setGtLat(e.target.value)} placeholder="e.g. 22.0964" />
             </label>
             <label>
               <span>Lon</span>
-              <input value={gtLon} onChange={(e) => setGtLon(e.target.value)} placeholder="vd -159.5261" />
+              <input value={gtLon} onChange={(e) => setGtLon(e.target.value)} placeholder="e.g. -159.5261" />
             </label>
             <label className="topk-field">
               <span>Top-k</span>
@@ -166,10 +170,10 @@ function App() {
           <button type="button" className="run-button" onClick={handleRun} disabled={loading}>
             {loading ? (
               <>
-                <span className="spinner" /> Đang chạy trên CPU…
+                <span className="spinner" /> Running on CPU…
               </>
             ) : (
-              'Chạy inference'
+              'Run inference'
             )}
           </button>
         </section>
@@ -177,12 +181,12 @@ function App() {
         <section className="panel">
           <div className="panel-title-row">
             <h2 className="panel-title">3. Attention layers</h2>
-            {activeLayerCount > 0 && <span className="pill pill-amber">{activeLayerCount} layer đang can thiệp</span>}
+            {activeLayerCount > 0 && <span className="pill pill-amber">Active layers: {activeLayerCount}</span>}
           </div>
           {modelInfo ? (
             <LayerControls numLayers={modelInfo.num_layers} layerConfigs={layerConfigs} onChange={setLayerConfigs} />
           ) : (
-            <p className="status-line">Đang tải thông tin model…</p>
+            <p className="status-line">Loading model information…</p>
           )}
         </section>
       </div>

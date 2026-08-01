@@ -10,7 +10,7 @@ export default function SavedRuns({ runs, onDelete }) {
 
   return (
     <div className="saved-runs">
-      <h2 className="panel-title">Đã lưu để so sánh ({runs.length})</h2>
+      <h2 className="panel-title">Saved comparisons ({runs.length})</h2>
       <div className="saved-runs-list">
         {runs.map((r) => (
           <div className="saved-run" key={r.id}>
@@ -18,8 +18,8 @@ export default function SavedRuns({ runs, onDelete }) {
             <div className="saved-run-info">
               <div className="saved-run-meta">
                 <span>{r.savedAt}</span>
-                <span className="pill pill-gray">{r.regionCount} vùng</span>
-                <span className="pill pill-amber">{r.activeLayerCount} layer can thiệp</span>
+                <span className="pill pill-gray">Regions: {r.regionCount}</span>
+                <span className="pill pill-amber">Active layers: {r.activeLayerCount}</span>
               </div>
               <div className="saved-run-metrics">
                 <span className="metric-blue">Baseline: {fmtTop1(r.result.baseline)}</span>
@@ -27,7 +27,7 @@ export default function SavedRuns({ runs, onDelete }) {
               </div>
             </div>
             <button type="button" className="ghost-button" onClick={() => onDelete(r.id)}>
-              Xoá
+              Delete
             </button>
           </div>
         ))}

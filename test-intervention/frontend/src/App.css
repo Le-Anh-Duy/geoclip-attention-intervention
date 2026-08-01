@@ -35,6 +35,33 @@ body {
   font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
 }
 
+.docs-link {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow);
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.docs-link:hover {
+  background: var(--primary-hover);
+}
+
+.docs-link:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 3px;
+}
+
 /* Header */
 .app-header {
   margin-bottom: 24px;

@@ -82,7 +82,7 @@ export default function ImageRegionSelector({ onImageChange, regions, onRegionsC
         onDrop={handleDrop}
       >
         <input type="file" accept="image/*" onChange={handleFile} />
-        {imgSrc ? 'Chọn ảnh khác (hoặc kéo-thả)' : '📷 Kéo-thả ảnh vào đây, hoặc bấm để chọn'}
+        {imgSrc ? 'Choose another image (or drag and drop)' : '📷 Drop an image here, or click to choose'}
       </label>
 
       {imgSrc && (
@@ -104,7 +104,7 @@ export default function ImageRegionSelector({ onImageChange, regions, onRegionsC
                 className="region-box"
                 style={{ left: `${r.x * 100}%`, top: `${r.y * 100}%`, width: `${r.w * 100}%`, height: `${r.h * 100}%` }}
                 onClick={() => removeRegion(i)}
-                title="Click để xoá vùng này"
+                title="Click to remove this region"
               />
             ))}
             {drawing && (
@@ -120,8 +120,8 @@ export default function ImageRegionSelector({ onImageChange, regions, onRegionsC
             )}
           </div>
           <p className="hint">
-            Kéo chuột trên ảnh để vẽ vùng (nhiều vùng được).
-            {regions.length > 0 && <span className="pill pill-green">{regions.length} vùng — click để xoá</span>}
+            Drag on the image to draw one or more regions.
+            {regions.length > 0 && <span className="pill pill-green">Selected regions: {regions.length} — click to remove</span>}
           </p>
         </>
       )}

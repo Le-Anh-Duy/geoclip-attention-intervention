@@ -19,7 +19,7 @@ function PredictionRow({ p, rank }) {
   return (
     <li>
       <span className="place-name">
-        #{rank + 1} {place || <em className="place-loading">đang tra cứu vị trí…</em>}
+        #{rank + 1} {place || <em className="place-loading">looking up location…</em>}
       </span>
       <span className="coords">
         {p.lat.toFixed(4)}, {p.lon.toFixed(4)} · p={p.prob.toFixed(4)}
@@ -35,7 +35,7 @@ function RunColumn({ title, accent, run }) {
       <h4>{title}</h4>
       {run.top1_distance_km != null && (
         <p className="distance">
-          Cách ground truth <strong>{run.top1_distance_km.toFixed(1)} km</strong>
+          Distance from ground truth: <strong>{run.top1_distance_km.toFixed(1)} km</strong>
         </p>
       )}
       {run.threshold_hits && (
@@ -128,13 +128,13 @@ export default function ResultsPanel({ result, groundTruth, onSave, saved }) {
   return (
     <div className="results-panel">
       <div className="panel-title-row">
-        <h2 className="panel-title">Kết quả</h2>
+        <h2 className="panel-title">Results</h2>
         <div className="panel-title-actions">
           <span className="pill pill-gray">
-            {result.in_region_patch_count}/{result.grid_size * result.grid_size} patch trong vùng
+            {result.in_region_patch_count}/{result.grid_size * result.grid_size} patches inside regions
           </span>
           <button type="button" className="ghost-button" onClick={onSave} disabled={saved}>
-            {saved ? '✓ Đã lưu' : '💾 Lưu để so sánh'}
+            {saved ? '✓ Saved' : '💾 Save for comparison'}
           </button>
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function ResultsPanel({ result, groundTruth, onSave, saved }) {
         <RunColumn title="● Intervention" accent="red" run={result.intervention} />
       </div>
       <div ref={attachMap} className="map" />
-      <p className="hint">Bấm/di chuột vào từng chấm trên bản đồ để xem thứ hạng và tên địa danh.</p>
+      <p className="hint">Click or hover over a map point to see its rank and place name.</p>
     </div>
   )
 }

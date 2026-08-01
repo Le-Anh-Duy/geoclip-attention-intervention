@@ -21,9 +21,9 @@ async function fetchPlaceName(lat, lon) {
     const place = a.city || a.town || a.village || a.county || a.state
     const country = a.country
     const label = [place, country].filter(Boolean).join(', ')
-    return label || data.display_name || 'Không xác định (có thể ngoài đại dương)'
+    return label || data.display_name || 'Unknown location (possibly at sea)'
   } catch {
-    return 'Không tra cứu được vị trí'
+    return 'Location lookup unavailable'
   } finally {
     await new Promise((resolve) => setTimeout(resolve, 1100))
   }

@@ -27,26 +27,26 @@ export default function LayerControls({ numLayers, layerConfigs, onChange }) {
     <div className="layer-controls">
       <div className="layer-controls-header">
         <span className="hint">
-          Hiển thị{' '}
+          Display{' '}
           <select
             value={displayMode}
-            aria-label="Cách hiển thị tham số can thiệp"
+            aria-label="Intervention parameter display mode"
             onChange={(e) => setDisplayMode(e.target.value)}
           >
-            <option value="bias">Bias trực tiếp</option>
-            <option value="scale">Scale tương đương</option>
+            <option value="bias">Direct bias</option>
+            <option value="scale">Equivalent scale</option>
           </select>{' '}
           — no-op: {isBias ? '0' : '1'}
         </span>
         <button type="button" className="ghost-button" onClick={() => onChange({})}>
-          Reset tất cả
+          Reset all
         </button>
       </div>
       <div className="layer-table">
         <div className="layer-row layer-row-head">
           <span>Layer</span>
-          <span>a — trong vùng</span>
-          <span>b — ngoài vùng</span>
+          <span>a — inside</span>
+          <span>b — outside</span>
         </div>
         {Array.from({ length: numLayers }, (_, idx) => {
           const [a, b] = layerConfigs[idx] || [0, 0]

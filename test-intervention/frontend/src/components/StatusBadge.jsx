@@ -6,11 +6,11 @@ import { useEffect, useState } from 'react'
 import { getHealth } from '../api'
 
 const LABELS = {
-  loading: { text: 'Đang tải/khởi tạo model...', cls: 'status-loading' },
-  ready: { text: 'Model sẵn sàng', cls: 'status-ready' },
-  busy: { text: 'Đang chạy inference...', cls: 'status-busy' },
-  error: { text: 'Lỗi khi tải model', cls: 'status-error' },
-  offline: { text: 'Không kết nối được backend', cls: 'status-error' },
+  loading: { text: 'Loading model...', cls: 'status-loading' },
+  ready: { text: 'Model ready', cls: 'status-ready' },
+  busy: { text: 'Running inference...', cls: 'status-busy' },
+  error: { text: 'Model failed to load', cls: 'status-error' },
+  offline: { text: 'Backend unavailable', cls: 'status-error' },
 }
 
 export default function StatusBadge({ predicting }) {

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GeoCLIP Sandbox Documentation</title>
+    <style>
+      :root { font: 16px/1.6 system-ui, sans-serif; color: #14171f; background: #f3f4f7; }
+      body { max-width: 720px; margin: auto; padding: 40px 24px 64px; }
+      main { padding: 28px; border: 1px solid #e3e6ec; border-radius: 14px; background: white; box-shadow: 0 6px 16px #0f172a0f; }
+      h1 { margin: 0 0 8px; font-size: 26px; }
+      h2 { margin: 28px 0 8px; font-size: 17px; }
+      p, ol { margin: 8px 0; }
+      code { padding: 2px 5px; border-radius: 4px; background: #eef0f4; }
+      a { color: #2563eb; }
+      .back { display: inline-block; margin-bottom: 18px; font-weight: 600; text-decoration: none; }
+      .note { padding: 12px 14px; border-left: 4px solid #2563eb; background: #eff6ff; }
+    </style>
+  </head>
+  <body>
+    <a class="back" href="./">&larr; Back to the sandbox</a>
+    <main>
+      <h1>GeoCLIP attention-intervention sandbox</h1>
+      <p>Use this tool to compare normal GeoCLIP inference with a run whose vision attention is biased toward or away from selected image regions.</p>
+
+      <h2>Run an experiment</h2>
+      <ol>
+        <li>Upload an image and drag over it to draw one or more regions of interest.</li>
+        <li>Optionally enter ground-truth latitude and longitude to measure prediction error.</li>
+        <li>Set <code>a</code> for patches inside the regions and <code>b</code> for patches outside them on any attention layer.</li>
+        <li>Run inference, then compare the baseline and intervention predictions in the list and map.</li>
+      </ol>
+
+      <h2>Parameters</h2>
+      <p>The values are additive attention-logit biases. Positive values attract attention, negative values repel it, and <code>a = b = 0</code> leaves a layer unchanged. Equivalent scale is <code>exp(bias)</code>.</p>
+
+      <h2>Notes</h2>
+      <p class="note">Regions are currently drawn manually. Grounding DINO preprocessing is not connected yet.</p>
+      <p>Saved comparisons stay only in this browser's local storage. This sandbox performs inference only; it does not train or modify model weights.</p>
+    </main>
+  </body>
+</html>
