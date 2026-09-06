@@ -1,0 +1,23 @@
+\begin{table}[h]
+\centering
+\caption{Size and direction of the effect. Displacement separates the
+unmodified and intervened predictions; the last three columns give the
+proportion of images whose error grows, shrinks and is unchanged.}
+\label{tab:effect}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{L{4.0cm}|P{1.6cm}P{1.6cm}|P{1.2cm}P{1.2cm}P{1.2cm}}
+\toprule
+\multirow{2}{*}{\textbf{Configuration}} &
+\multicolumn{2}{c|}{\textbf{Displacement (km)}} &
+\multicolumn{3}{c}{\textbf{Images (\%)}} \\
+ & Mean & Median & Worse & Better & Same \\
+\midrule
+Amplify, all 24 layers & 2042.2 & 160.9 & 46.7 & 25.5 & 27.8 \\
+Amplify, final layer & 320.5 & 0.0 & 10.4 & 8.9 & 80.7 \\
+Amplify top proposal & 256.5 & 0.0 & 9.4 & 7.4 & 83.2 \\
+Random regions (control) & -- & -- & -- & -- & -- \\
+Oracle over proposals & 307.9 & 0.0 & 5.6 & 12.6 & 81.8 \\
+Oracle incl. baseline & 0.0 & 0.0 & 0.0 & 12.6 & 87.4 \\
+\bottomrule
+\end{tabular}
+\end{table}

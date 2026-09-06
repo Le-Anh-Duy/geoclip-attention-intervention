@@ -13,6 +13,13 @@
 \newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 \newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 
+% LaTeX's defaults reserve a lot of a page for text whenever a float is on it,
+% which leaves visible gaps in a paper this dense. Let floats pack tighter.
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+
 % ---- scaffolding helpers: delete both before submitting ----------------
 % Every open item is marked with \TODO{...}. Grep the sources for "TODO".
 \newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}

@@ -25,50 +25,39 @@ depth.
 
 \subsubsection{Scenario 1: dependence upon an individual cue.}
 The attendee uploads a street-level photograph and suppresses a single
-region --- a shopfront sign or a licence plate --- by assigning a negative
-in-region bias across all layers. The map is updated with the intervened
-prediction and the resulting displacement. A displacement of several
-thousand kilometres identifies a cue upon which the model demonstrably
-depends; one of a few kilometres indicates that it does not, irrespective of
-the prominence assigned to that region by saliency methods.
+region --- a shopfront sign or a licence plate --- with a negative in-region
+bias across all layers. A displacement of several thousand kilometres
+identifies a cue upon which the model demonstrably depends; one of a few
+kilometres indicates that it does not, irrespective of the prominence
+saliency methods assign that region.
 \TODO{specify the image used and the observed displacement}
 
 \subsubsection{Scenario 2: comparison across cue categories.}
 Rather than delineating a region manually, the attendee selects a concept
-from the Grounding DINO vocabulary; the corresponding detections are loaded
-as the region and the same suppression is applied. Iterating over
+from the detector's vocabulary; the corresponding detections are loaded as
+the region and the same suppression is applied. Iterating over
 \texttt{street sign}, \texttt{vegetation}, \texttt{architecture} and
-\texttt{license plate} for one image yields an ordering of the named cue
-categories by their causal contribution to that prediction.
+\texttt{license plate} for one image orders the named cue categories by
+their causal contribution to that prediction.
 
 \subsubsection{Scenario 3: localisation of the effect within the network.}
-The per-layer controls restrict the intervention to the early ($0$--$7$),
-middle ($8$--$15$) or late ($16$--$23$) layer groups. Attendees observe that
-the groups are not interchangeable
-\TODO{state which group dominates, per Table~\ref{tab:groups}},
-substantiating the proposition that geographic evidence is aggregated at a
-particular depth rather than uniformly. The intervention is reversible
-throughout: resetting the biases to zero restores the baseline prediction
-exactly.
+The per-layer controls restrict the intervention to a chosen subset of the
+$24$ layers. Depth proves decisive: the same bias applied to every layer
+displaces the prediction by $2{,}042$~km on average, whereas restricting it
+to the final layer displaces it by $320$~km and leaves four images in five
+untouched (Table~\ref{tab:effect}). The intervention is reversible
+throughout, resetting the biases to zero restoring the baseline exactly.
 
-\subsection{Setup and Requirements}
+\subsection{Setup, Requirements and Relevance}
 
-GeoProbe operates entirely on a single laptop and requires no network
-connectivity: the GeoCLIP weights, the $10^{5}$-point GPS gallery, the
-precomputed location embeddings and the cached Grounding DINO detections are
-all held locally, and a cached offline tile set substitutes for online map
-tiles. We provide the machine (\TODO{GPU and memory}) and require only table
-space, mains power and, where available, an external monitor. No specialised
-equipment or network access is necessary.
-
-\subsection{Relevance to the MMM Community}
-
-The demonstration addresses three concerns central to this community:
-multimodal vision--language models, whose internal behaviour increasingly
-determines whether a deployed system may be trusted; explainability of a
-causal rather than correlational character, which multimedia forensics
-requires if attribution claims are to withstand scrutiny; and image
-geolocation itself, whose dual use --- supporting the verification of
-imagery on the one hand and the erosion of location privacy on the other ---
-renders an understanding of the evidence these models exploit consequential
-beyond the question of accuracy alone.
+GeoProbe runs entirely on a single laptop (\TODO{GPU and memory}) with no
+network connectivity: weights, GPS gallery, location embeddings, cached
+detections and offline map tiles are all held locally. We require only table
+space, mains power and, where available, an external monitor. The
+demonstration addresses three concerns central to this community: multimodal
+vision--language models, whose internal behaviour determines whether a
+deployed system may be trusted; explainability of a causal rather than
+correlational character, which multimedia forensics requires if attribution
+claims are to withstand scrutiny; and image geolocation itself, whose dual
+use renders an understanding of the evidence these models exploit
+consequential beyond accuracy alone.

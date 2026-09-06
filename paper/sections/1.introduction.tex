@@ -5,42 +5,37 @@ progressed from retrieval over geotagged collections~\cite{hays2008im2gps},
 through classification over discretised geographic
 cells~\cite{weyand2016planet,pramanick2022translocator}, to contrastive
 alignment between images and continuous GPS coordinates.
-GeoCLIP~\cite{cepeda2023geoclip} exemplifies the latter paradigm: a
+GeoCLIP~\cite{cepeda2023geoclip} exemplifies the latter: a
 CLIP~\cite{radford2021clip} vision tower is aligned with a location encoder,
 and inference reduces to nearest-neighbour retrieval over a gallery of
-$10^{5}$ GPS coordinates. Such models attain accuracies that render them
-practically useful and, simultaneously, consequential, as the same
-capability supports both the verification of news imagery and the inference
-of location from photographs shared without geotags.
+$10^{5}$ coordinates. Such models are accurate enough to be practically useful
+and, for the same reason, consequential --- the capability supports both the
+verification of news imagery and the inference of location from photographs
+shared without geotags.
 
-Despite this, the evidential basis of an individual prediction remains
-largely opaque. It is widely assumed that these models exploit road
-markings, vegetation, licence plates and shopfront text, but the supporting
-evidence is predominantly anecdotal or derived from attention maps.
-Attention distributions are correlational, and have been shown to be an
+The evidential basis of an individual prediction nonetheless remains opaque.
+It is widely assumed that these models exploit road markings, vegetation,
+licence plates and shopfront text, but the supporting evidence is anecdotal or
+derived from attention maps. Attention distributions are correlational and an
 unreliable indication of the quantities upon which a model
 depends~\cite{jain2019attention}; the same limitation applies to
 gradient-based saliency~\cite{selvaraju2017gradcam} and to attention
 rollout~\cite{abnar2020rollout}. The question of practical interest ---
-whether a prediction would persist if the model were unable to attend to a
-particular region --- is causal in nature, and therefore requires
-intervention upon the model rather than inspection of it. Such analysis is
-established practice in the study of language models, where ablating
-specific attention pathways identifies the internal routes along which
-factual information propagates~\cite{meng2022rome,geva2023dissecting}. The
-present work transfers that methodology to image geolocation and renders it
-interactive, so that the effect of removing a given visual cue may be
-observed directly.
+whether a prediction would persist were the model unable to attend to a
+particular region --- is causal, and therefore requires intervention upon the
+model rather than inspection of it. Such analysis is established practice for
+language models, where ablating attention pathways identifies the internal
+routes along which factual information
+propagates~\cite{meng2022rome,geva2023dissecting}. We transfer that
+methodology to image geolocation and render it interactive.
 
-We present GeoProbe, whose contributions are threefold. First, an
-interactive system applying region-conditioned, per-layer attention
-intervention to the GeoCLIP vision tower at inference time, requiring
-neither training, gradients nor architectural modification, and presenting
-the unmodified and intervened predictions jointly on a map. Second, an
-open-vocabulary interface in which Grounding
-DINO~\cite{liu2024groundingdino} converts a textual vocabulary of geographic
-cues into the regions subjected to intervention, so that named concepts
-rather than manually delineated rectangles are examined. Third, a
-quantitative study on Img2GPS3k~\cite{vo2017revisiting} searching attention
-biases over early, middle and late layer groups, establishing the extent to
-which the prediction is steerable through attention alone.
+The contributions of GeoProbe are threefold. First, an interactive system
+applying region-conditioned, per-layer attention intervention to the GeoCLIP
+vision tower at inference time, requiring neither training, gradients nor
+architectural modification, and presenting the unmodified and intervened
+predictions jointly on a map. Second, an interface in which automatic region
+proposals~\cite{liu2024groundingdino} rather than manually delineated
+rectangles determine what is intervened upon. Third, a quantitative study on
+Img2GPS3k~\cite{vo2017revisiting} establishing that the proposed regions are
+load-bearing, and that the dependence is distributed across the depth of the
+encoder rather than concentrated at the read-out.

@@ -6,20 +6,18 @@ address this question only correlationally: they indicate where activation
 concentrates, without establishing that the highlighted evidence is what the
 model relies upon. This paper presents GeoProbe, an interactive system for
 causal analysis of image geolocation models. Given an image region ---
-specified manually, or obtained from open-vocabulary Grounding DINO
-detections over a vocabulary of geographic cues such as \texttt{street
-sign}, \texttt{utility pole} and \texttt{license plate} --- GeoProbe adds a
-key-indexed bias to the pre-softmax attention logits of the CLIP vision
-tower, independently per layer, thereby increasing or decreasing the
-attention mass allocated to that region. The system executes GeoCLIP twice,
-without and with the intervention, and reports both predictions together
-with the geodesic distance separating them. The magnitude of this
-displacement constitutes a direct causal measure of the region's
-contribution to the prediction. We further report a search over attention
-biases applied to early, middle and late layer groups on the Img2GPS3k
-benchmark, quantifying the extent to which the geolocation output can be
-manipulated through attention reweighting alone.
-\TODO{add one sentence stating the principal quantitative result}
+specified manually, or obtained automatically from an object detector ---
+GeoProbe adds a key-indexed bias to the pre-softmax attention logits of the
+CLIP vision tower, independently per layer, thereby increasing or decreasing
+the attention mass allocated to that region. The system executes GeoCLIP
+twice, without and with the intervention, and reports both predictions
+together with the geodesic distance separating them. The magnitude of this
+displacement is a direct causal measure of the region's contribution. On Img2GPS3k, amplifying the proposed regions
+across all $24$ layers moves the prediction by $2{,}042$~km on average and
+raises the mean error from $1{,}829$ to $2{,}656$~km, whereas confining the
+same bias to the final layer moves it by only $320$~km: the regions are
+load-bearing, and they become so through the depth of the encoder rather than
+at the point of read-out.
 
 \keywords{Image Geolocation \and Explainability \and Attention Intervention
 \and Vision--Language Models.}

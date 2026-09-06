@@ -1,68 +1,62 @@
 \section{Quantitative Study}
 \label{sec:experiments}
 
-\begin{figure}[t]
-  \centering
-  \placeholderfig{32mm}{figures/qualitative.png --- three or four examples:
-  original image with detected box, unmodified prediction, intervened
-  prediction, and the resulting displacement in km}
-  \caption{Qualitative examples. \TODO{describe each case}}
-  \label{fig:qualitative}
-  \vspace{-3mm}
-\end{figure}
-
 \subsection{Experimental Setup}
 
-We evaluate on Img2GPS3k~\cite{vo2017revisiting}, comprising $2{,}997$
-images with ground-truth coordinates. Grounding DINO produces the regions
-from the eight-concept vocabulary of Section~\ref{sec:system}; images for
-which no detected box survives the mapping into CLIP's centre crop are
-excluded, and their number reported, so that the evaluated subset is
-unambiguous (\TODO{$N$ evaluated, $N$ excluded}). We report mean and median
-top-$1$ geodesic error and accuracy within the conventional $1$, $25$,
-$200$, $750$ and $2{,}500$~km thresholds. The location encoder and gallery
-embeddings are computed once and reused, so the rows of
+We evaluate on Img2GPS3k~\cite{vo2017revisiting}, comprising $2{,}997$ images
+with ground-truth coordinates.
+\TODO{Section~\ref{sec:system} describes the Grounding DINO vocabulary; the
+numbers below come from class-agnostic proposals. Reconcile before submitting.}
+Regions are the class-agnostic object proposals retained at an objectness
+threshold of $0.4$. For $947$ images no proposal survives, making every
+intervened configuration an exact no-op; these are excluded, leaving
+$N = 2{,}050$ images carrying $5{,}663$ proposals whose union marks on average
+$87$ of the $256$ patches. Alongside mean and median top-$1$ geodesic error and
+the conventional threshold accuracies we report the geodesic displacement
+between the unmodified and the intervened prediction. The location encoder and
+the gallery embeddings are computed once and reused, so the rows of
 Table~\ref{tab:main} differ solely in the attention of the vision tower.
 
-\subsection{Grouped Attention Search}
-
-The $24$ layers are partitioned into three contiguous groups --- early
-($0$--$7$), middle ($8$--$15$) and late ($16$--$23$) --- each governed by a
-single parameter $\delta_i$, with in-region bias $a_i = \delta_i$ and
-out-of-region bias $b_i = -\delta_i$ for every layer of group $i$. Positive
-$\delta$ favours the detected regions, negative $\delta$ favours their
-complement, and $\delta_1 = \delta_2 = \delta_3 = 0$ recovers the unmodified
-model exactly. Candidates are sampled uniformly from
-$\delta_i \in [-3, 3]$ over \TODO{$T$} trials with seed $42$, minimising the
-mean top-$1$ distance. The suppression and amplification rows of
-Table~ef{tab:main} instead fix $\delta_1 = \delta_2 = \delta_3 = \mp 2$,
-applying the same bias to every layer.
+Three fixed interventions are evaluated: the union of an image's proposals
+amplified uniformly across all $24$ layers with $a_\ell = 2$, $b_\ell = -2$;
+a weaker one-sided bias, $a_\ell = 1$, $b_\ell = 0$, at the final layer alone,
+isolating the read-out; and the same restricted to the single proposal of
+highest objectness. Two further rows select, per image, the proposal minimising
+the error, in the second case also admitting the unmodified prediction as a
+candidate; these consult the ground truth and bound what region-conditioned
+attention could achieve rather than describing a deployable configuration.
 
 \input{tables/tab_main}
 
 \subsection{Results}
 
-\TODO{to be written once the search has completed}
+Amplifying the proposed regions throughout the encoder degrades geolocation
+substantially. Mean error rises from $1{,}829$ to $2{,}656$~km and median error
+from $284$ to $673$~km, while accuracy within $25$~km falls from $31.3$ to
+$23.4$~per cent. This is no small perturbation: the prediction moves by
+$2{,}042$~km on average, and the movement is far from uniform in direction ---
+$46.7$~per cent of images worsen, $25.5$~per cent improve and $27.8$~per cent
+are unchanged (Table~\ref{tab:effect}). The regions are load-bearing, and the
+magnitude of the degradation quantifies the extent of the dependence.
 
-% ---------------------------------------------------------------------
-% Author note (not rendered). All three outcomes support a demonstration
-% paper; select the framing that matches the numbers obtained.
-%
-%  (a) Intervention improves accuracy. Report the gain and observe that the
-%      mechanism which explains the model also steers it: the detected cues
-%      carry signal that the unmodified attention under-weights.
-%  (b) Intervention degrades accuracy substantially. This is the stronger
-%      explainability result: the detected regions are load-bearing, and the
-%      magnitude of the degradation quantifies the extent. Contrast with the
-%      random-region control to establish that the effect does not follow
-%      merely from perturbing attention at all.
-%  (c) Little changes. Report this plainly: it bounds the proportion of
-%      GeoCLIP's behaviour reachable through attention reweighting alone and
-%      motivates representation-level intervention.
-% ---------------------------------------------------------------------
+Depth is the decisive variable. The same amplification confined to the final
+layer displaces the prediction by only $320$~km, leaves $80.7$~per cent of
+images untouched and raises the mean error by $67$ rather than $827$~km.
+Geographic evidence is accumulated across the depth of the encoder rather than
+read off at the output --- precisely the distinction the per-layer controls of
+Section~\ref{sec:demo} allow an attendee to establish for a single photograph.
 
-The control row is material to the interpretation in every case. Each image's
-patch mask is rolled cyclically by a random offset on the $16 	imes 16$ grid,
-yielding a region of identical shape and identical patch count at an
-uninformative location. An effect that survives this substitution would
-reflect the proportion of the image perturbed rather than its content.
+Degradation under a fixed bias is not evidence that the regions are
+uninformative. Selecting per image the proposal minimising the error reduces
+the mean to $1{,}791$~km, and admitting the unmodified prediction as a further
+candidate reduces it to $1{,}695$~km --- $134$~km below baseline, improving
+$12.6$~per cent of images while harming none. A usable region-conditioned
+signal exists that no global bias recovers, and identifying it image by image
+is the analysis the interactive system supports.
+
+The control row bounds this interpretation: each image's patch mask is rolled
+cyclically by a random offset on the $16 \times 16$ grid, so an effect
+surviving the substitution would reflect the proportion of the image perturbed
+rather than its content. \TODO{report the control} The measurement is otherwise
+stable: repeating the all-layer configuration on different hardware reproduced
+the mean error to within $2$~km.

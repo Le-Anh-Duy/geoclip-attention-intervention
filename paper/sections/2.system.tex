@@ -23,11 +23,9 @@ vision tower $f_{\mathrm{img}}$ and GPS coordinates with a location encoder
 $f_{\mathrm{loc}}$, predicting
 $\hat{g}(x) = \arg\max_{g \in \mathcal{G}}
 \langle \bar{f}_{\mathrm{img}}(x), \bar{f}_{\mathrm{loc}}(g) \rangle$,
-where $\bar{\cdot}$ denotes $L_2$ normalisation and $\mathcal{G}$ is a fixed
-gallery of $10^{5}$ coordinates. GeoProbe leaves $f_{\mathrm{loc}}$ and
-$\mathcal{G}$ unmodified throughout; every intervention acts upon
-$f_{\mathrm{img}}$ alone, so that any change in $\hat{g}$ is attributable to
-the image pathway.
+where $\bar{\cdot}$ is $L_2$ normalisation and $\mathcal{G}$ a fixed gallery
+of $10^{5}$ coordinates. Every intervention acts upon $f_{\mathrm{img}}$
+alone, so any change in $\hat{g}$ is attributable to the image pathway.
 
 \subsection{Region-Conditioned Attention Intervention}
 \label{sec:intervention}
@@ -54,16 +52,14 @@ $\ell$ prior to the softmax,
 
 Three properties make this a suitable analytical primitive. The bias is
 indexed by key and broadcast across all queries and heads, so every token
---- including \texttt{CLS} as a query --- draws proportionally more
-information from within the region when $a_\ell > 0$ and less from outside
-when $b_\ell < 0$. It is exactly a multiplicative reweighting of attention
-mass by $\exp(\beta_j)$, so the control may be presented either as a logit
-bias or as a scale factor. And $a_\ell = b_\ell = 0$ is an exact no-op, so
-the reported baseline is the unmodified model rather than an approximation.
-The \texttt{CLS} key is never biased: as a summary token rather than a
-spatial patch, the interior/exterior distinction does not apply to it, and
-biasing it would confound the regional effect with a global rescaling of the
-summary pathway.
+draws proportionally more information from within the region when
+$a_\ell > 0$ and less from outside when $b_\ell < 0$. It is exactly a
+multiplicative reweighting of attention mass by $\exp(\beta_j)$, so the
+control may be presented as a logit bias or as a scale factor. And
+$a_\ell = b_\ell = 0$ is an exact no-op, so the reported baseline is the
+unmodified model rather than an approximation. The \texttt{CLS} key is never
+biased: as a summary token rather than a spatial patch, the
+interior/exterior distinction does not apply to it.
 
 \subsection{Mapping Regions to Patches}
 
@@ -71,10 +67,9 @@ A region delineated on the original image cannot be transferred to the patch
 grid directly, since CLIP resizes the shorter side to $224$ pixels and then
 applies a centre crop. GeoProbe replicates this geometry on the region
 coordinates, so that a patch is marked in-region only if it remains so after
-preprocessing. Regions falling entirely outside the centre crop yield an
-empty mask; such cases are reported explicitly rather than silently treated
-as a no-op, and are excluded from the evaluation of
-Section~\ref{sec:experiments}. Multiple regions are combined by union.
+preprocessing. Regions falling outside the centre crop yield an empty mask;
+such cases are reported rather than silently treated as a no-op, and are
+excluded in Section~\ref{sec:experiments}. Multiple regions are unioned.
 
 \subsection{Open-Vocabulary Region Proposals}
 
