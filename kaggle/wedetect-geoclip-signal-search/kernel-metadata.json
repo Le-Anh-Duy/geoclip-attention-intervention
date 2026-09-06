@@ -1,0 +1,19 @@
+{
+  "id": "giahuytran1/wedetect-geoclip-signal-search",
+  "title": "WeDetect GeoCLIP Signal Search",
+  "code_file": "wedetect-geoclip-signal-search.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "machine_shape": "NvidiaRtxPro6000",
+  "dataset_sources": ["lbgan2000/imgps3k-yfcc4k-cleaned"],
+  "competition_sources": ["arc-prize-2026-arc-agi-3"],
+  "kernel_sources": [
+    "giahuytran1/geoclip-detector-offline-assets",
+    "giahuytran1/wedetect-img2gps3k-cache"
+  ],
+  "model_sources": []
+}

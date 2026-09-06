@@ -79,6 +79,9 @@ checkpoint = hf_hub_download(
     revision=REVISIONS["wedetect_hf_commit"],
     cache_dir="/kaggle/working/hf-cache",
 )
+materialized_checkpoint = OUTPUT / "wedetect" / "wedetect_base_uni.pth"
+materialized_checkpoint.parent.mkdir(exist_ok=True)
+shutil.copy2(checkpoint, materialized_checkpoint)
 wedetect_dir = OUTPUT / "wedetect"
 wedetect_dir.mkdir(exist_ok=True)
 run(
@@ -102,6 +105,7 @@ run([sys.executable, "-m", "pip", "download", "-q", "--only-binary=:all:", "--de
 onnx_path = wedetect_dir / "wedetect_anything_base.onnx"
 data_path = onnx_path.with_suffix(".onnx.data")
 required = [
+    materialized_checkpoint,
     onnx_path,
     data_path,
     OUTPUT / "grounding-dino-base" / "config.json",

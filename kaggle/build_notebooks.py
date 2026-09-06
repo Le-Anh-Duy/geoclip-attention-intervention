@@ -52,3 +52,17 @@ build(
     "Counterfactual detector agreement for GeoCLIP",
     "Offline G4 experiment comparing Grounding DINO and WeDetect masks through causal attention interventions.",
 )
+build(
+    "wedetect-img2gps3k-cache",
+    "cache_wedetect.py",
+    "wedetect-img2gps3k-cache.ipynb",
+    "WeDetect cache for the complete Img2GPS3K test set",
+    "One CUDA pass over all 2,997 images. The reusable cache retains low-threshold NMS proposals so downstream searches never rerun WeDetect.",
+)
+build(
+    "wedetect-geoclip-signal-search",
+    "search_signals.py",
+    "wedetect-geoclip-signal-search.ipynb",
+    "WeDetect-guided GeoCLIP layer, head, and signal search",
+    "Full-test offline search over all 24 layers, all 16 attention heads, query scope, proposal dose, and baseline internal signals. Configuration selection uses a deterministic discovery split and reports a locked holdout.",
+)
