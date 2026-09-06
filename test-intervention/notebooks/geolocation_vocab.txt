@@ -1,0 +1,9 @@
+# One Grounding DINO concept per line.
+street sign
+utility pole
+road marking
+bollard
+license plate
+architecture
+vegetation
+sidewalk tiles

@@ -58,7 +58,7 @@ Rules:
 - Each box is `[x1, y1, x2, y2]` in original-image pixels.
 - Coordinates must satisfy `0 <= x1 < x2 <= image_width` and `0 <= y1 < y2 <= image_height`.
 - Latitude must be in `[-90, 90]`; longitude must be in `[-180, 180]`.
-- Each record must contain at least one box that overlaps CLIP's center crop.
+- `boxes` may be empty. Records with no box intersecting CLIP's center crop are reported and excluded from the benchmark.
 - Record IDs must be unique.
 
 ## Search configuration
@@ -86,10 +86,10 @@ The notebook evaluates zero delta first, followed by uniformly sampled candidate
 1. Install the pinned GeoCLIP fork.
 2. Load GeoCLIP once.
 3. Encode and normalize the fixed GPS gallery once in bounded CPU batches.
-4. Decode and CLIP-preprocess every image once; build its region-to-patch mask.
+4. Map original-image boxes through CLIP's resize and center crop, report empty masks, then preprocess valid images once.
 5. Run the unmodified baseline once over the dataset.
 6. For every delta candidate, run the vision encoder over the full dataset and compare its image embeddings against the cached location embeddings.
-7. Aggregate top-1 distance and threshold accuracy over the complete dataset.
+7. Aggregate top-1 distance and threshold accuracy over the non-empty-mask subset.
 8. Checkpoint the current search table and best result after every trial.
 
 Only the vision encoder is rerun because its attention changes between candidates. The location encoder and GPS gallery embeddings are never recomputed during random search.
@@ -111,6 +111,7 @@ Files are written to `OUTPUT_DIR`:
 | `random_search_results.csv` | Deltas and aggregate metrics for every completed trial. |
 | `best_per_image.csv` | Per-image results for the current best candidate. |
 | `best_config.json` | Best deltas, layer groups, objective, metrics, and seed. |
+| `empty_patch_mask_ids.json` | IDs excluded because no supplied box maps to a visible CLIP patch. |
 
 ## Resource notes
 

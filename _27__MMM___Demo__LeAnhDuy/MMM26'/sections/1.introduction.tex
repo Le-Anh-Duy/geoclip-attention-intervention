@@ -1,0 +1,21 @@
+\section{Introduction}
+
+Camera identification, also known as device fingerprinting or device attribution, is recognized as a fundamental task in digital forensics~\cite{klier2025source}. 
+Specifically, it involves reliably tracing an image back to its original source, particularly when the file has been intentionally modified.
+Digital image files contain Exif metadata, which is automatically embedded by the camera software and encompasses important details such as camera \texttt{Make}, camera \texttt{Model}, date/time, and other capture settings~\cite{soni2025forensic}.
+However, this type of metadata can be easily modified or stripped by third-party software for various purposes, including addressing privacy concerns (removing location tags), reducing file size, or malicious manipulation to conceal an image's true origin. 
+Since modification renders the simple metadata untrustworthy, there is a critical need for methods that look beyond the surface data to the underlying, intrinsic file characteristics.
+For more than two decades, research efforts have been made to address this problem, utilizing techniques such as sensor pattern noise~\cite{lukas2006digital}, color filter array (CFA) interpolation~\cite{bayram2005source}, and deep learning~\cite{freire2019deep}. 
+However, no attempts have been made to directly classify camera devices based on the image Exif file structure and its detailed information.
+The ability to not only trace an image back to its original camera manufacturer and model but also to identify precisely which metadata tags have been altered significantly enhances the insights available for subsequent forensic tasks.
+
+This paper introduces a simple yet effective system for camera identification, that leverages detailed image metadata features, specifically including the presence, order, and type of Exif fields. 
+Specifically, the proposed approach capitalizes on the subtle differences in how various camera software handles metadata structuring.
+Furthermore, this work investigates the traces in features that remain when metadata is modified. 
+
+To facilitate feature extraction, our system utilizes a rich metadata reader to obtain the entire structure stored in the image Exif data. This means that images whose metadata have been stripped are not considered for camera classification. In contrast to many deep learning based methods, this approach offers transparency, allowing analysts to precisely trace the contribution of individual metadata features to the final classification prediction. In general, the contributions of this work are as follows:
+\begin{itemize}
+    \item Implementation of a simple yet effective system using rich metadata to classify camera \texttt{Make} and camera \texttt{Model}.
+    \item Evaluation of the proposed approach using two camera forensic datasets: Dresden~\cite{gloe2010dresden} and DivNoise~\cite{casagrande2023divnoise} datasets.
+    \item Demonstration of a capability for detecting metadata tampering.
+\end{itemize}
