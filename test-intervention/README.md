@@ -1,9 +1,8 @@
 # GeoCLIP attention-intervention sandbox
 
-Manual-region sandbox for testing whether biasing CLIP's vision-tower
-attention toward/away from a chosen image region shifts GeoCLIP's predicted
-GPS. Stands in for Grounding DINO boxes until that's wired up — regions are
-drawn by hand in the UI instead of detected.
+Sandbox for testing whether biasing CLIP's vision-tower attention toward or
+away from a chosen image region shifts GeoCLIP's predicted GPS. Regions can be
+drawn manually or generated without a text prompt by WeDetect-Base-Uni.
 
 ## Layout
 
@@ -35,6 +34,41 @@ npm run dev
 
 Open `http://localhost:5173`. Backend must be reachable at
 `http://127.0.0.1:8000` (hardcoded in `frontend/src/api.js`).
+
+## Optional WeDetect-Base-Uni proposals
+
+Install the backend requirements, then download the official Base-Uni
+checkpoint and export its visual-only proposal graph to ONNX:
+
+```
+cd backend
+python scripts/setup_wedetect_uni.py
+```
+
+The generated model is stored outside the repository at
+`~/.cache/wedetect/wedetect_anything_base.onnx`. To use another export, set:
+
+```
+WEDETECT_UNI_ONNX=/absolute/path/to/wedetect_anything_base.onnx
+```
+
+The UI button **Sinh proposal bằng WeDetect-Uni** calls `POST /proposals`.
+Returned boxes are deduplicated after projection to GeoCLIP's patch grid;
+click a blue box to include it in the next intervention run. Manual regions
+remain available and can be combined with selected proposals.
+The default WeDetect objectness threshold is `0.4` and the NMS IoU threshold
+is `0.7`.
+
+**Đánh giá tất cả proposal độc lập** calls `POST /evaluate-proposals`. It runs
+the baseline once, then applies the current attention configuration to each
+retained proposal separately; proposal boxes are never unioned in this batch.
+When ground-truth coordinates are supplied, results are ranked by top-1
+distance improvement. The proposal limit is exposed in the UI (20 by default,
+up to 1000) because a run costs one GeoCLIP inference per unique patch mask.
+
+Only the prompt-free visual proposal stage is loaded. The WeDetect text tower,
+large vocabulary, and WeDetect-Ref are not part of this pipeline. The upstream
+WeDetect source and weights are GPL-v3 and remain in the user cache.
 
 ## The intervention, and where it lives
 

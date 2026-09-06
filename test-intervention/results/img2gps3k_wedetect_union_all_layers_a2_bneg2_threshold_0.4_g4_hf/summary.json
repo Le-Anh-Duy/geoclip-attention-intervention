@@ -1,0 +1,88 @@
+{
+  "dataset": "lbgan2000/imgps3k-yfcc4k-cleaned",
+  "evaluated_images": 2997,
+  "failed_images": 0,
+  "device": "cuda",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "wedetect_provider": "CUDAExecutionProvider",
+  "config": {
+    "score_threshold": 0.4,
+    "iou_threshold": 0.7,
+    "proposal_top_k": 1000,
+    "layers": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "a": 2.0,
+    "b": -2.0,
+    "proposal_mode": "union_all",
+    "baseline_batch_size": 64
+  },
+  "proposal_statistics": {
+    "images_with_proposals": 2051,
+    "images_without_proposals": 946,
+    "total_unique_patch_masks": 5662,
+    "mean_per_image": 1.8892225558892226,
+    "median_per_image": 1.0,
+    "max_per_image": 24,
+    "mean_union_patch_count": 87.3953953953954,
+    "median_union_patch_count": 54.0,
+    "max_union_patch_count": 256,
+    "mean_union_coverage": 0.34138826326326327,
+    "images_with_full_patch_coverage": 260
+  },
+  "metrics": {
+    "baseline": {
+      "mean_distance_km": 1763.001499960349,
+      "median_distance_km": 241.78190985130797,
+      "accuracy": {
+        "acc_1_km": 0.1304637971304638,
+        "acc_25_km": 0.321654988321655,
+        "acc_200_km": 0.47981314647981316,
+        "acc_750_km": 0.665331998665332,
+        "acc_2500_km": 0.8228228228228228
+      }
+    },
+    "union_all": {
+      "mean_distance_km": 2330.565458754399,
+      "median_distance_km": 437.0628515360857,
+      "accuracy": {
+        "acc_1_km": 0.10243576910243576,
+        "acc_25_km": 0.2679346012679346,
+        "acc_200_km": 0.40473807140473805,
+        "acc_750_km": 0.5782449115782449,
+        "acc_2500_km": 0.7590924257590924
+      }
+    }
+  },
+  "timing_seconds": {
+    "baseline": 39.72654025399993,
+    "proposal_stage_this_run": 106.11194264699998
+  },
+  "artifacts": {
+    "per_image": "/content/img2gps3k_wedetect_union_all_layers_a2_bneg2_eval/per_image.csv",
+    "summary": "/content/img2gps3k_wedetect_union_all_layers_a2_bneg2_eval/summary.json"
+  }
+}

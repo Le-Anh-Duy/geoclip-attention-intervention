@@ -6,7 +6,14 @@ import { useRef, useState } from 'react'
 // coordinates line up directly with the backend's region->patch mapping
 // (backend/app/intervention.py build_in_region_mask), which expects
 // fractions of the ORIGINAL uploaded image -- no extra conversion needed.
-export default function ImageRegionSelector({ onImageChange, regions, onRegionsChange }) {
+export default function ImageRegionSelector({
+  onImageChange,
+  regions,
+  onRegionsChange,
+  proposals = [],
+  selectedProposalIndexes = [],
+  onToggleProposal,
+}) {
   const containerRef = useRef(null)
   const [imgSrc, setImgSrc] = useState(null)
   const [drawing, setDrawing] = useState(null)
@@ -98,6 +105,26 @@ export default function ImageRegionSelector({ onImageChange, regions, onRegionsC
             onDrop={handleDrop}
           >
             <img src={imgSrc} alt="upload preview" draggable={false} />
+            {proposals.map((proposal) => {
+              const r = proposal.region
+              const selected = selectedProposalIndexes.includes(proposal.index)
+              return (
+                <button
+                  type="button"
+                  key={`proposal-${proposal.index}`}
+                  className={`proposal-box${selected ? ' proposal-box-selected' : ''}`}
+                  style={{ left: `${r.x * 100}%`, top: `${r.y * 100}%`, width: `${r.w * 100}%`, height: `${r.h * 100}%` }}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onToggleProposal?.(proposal.index)
+                  }}
+                  title={`WeDetect #${proposal.index + 1} · objectness=${proposal.objectness.toFixed(3)} · ${proposal.patch_count} patches`}
+                >
+                  <span>{proposal.index + 1}</span>
+                </button>
+              )
+            })}
             {regions.map((r, i) => (
               <div
                 key={i}
@@ -122,6 +149,11 @@ export default function ImageRegionSelector({ onImageChange, regions, onRegionsC
           <p className="hint">
             Drag on the image to draw one or more regions.
             {regions.length > 0 && <span className="pill pill-green">Selected regions: {regions.length} — click to remove</span>}
+            {proposals.length > 0 && (
+              <span className="pill pill-blue">
+                Selected WeDetect proposals: {selectedProposalIndexes.length}/{proposals.length}
+              </span>
+            )}
           </p>
         </>
       )}

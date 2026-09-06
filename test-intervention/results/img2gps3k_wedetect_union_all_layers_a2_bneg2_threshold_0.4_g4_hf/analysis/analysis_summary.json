@@ -1,0 +1,54 @@
+{
+  "evaluated_images": 2997,
+  "tolerance_km": 1e-09,
+  "outcome_all_images": {
+    "improved": {
+      "count": 525,
+      "rate": 0.17517517517517517
+    },
+    "worsened": {
+      "count": 957,
+      "rate": 0.31931931931931934
+    },
+    "unchanged": {
+      "count": 1515,
+      "rate": 0.5055055055055055
+    }
+  },
+  "images_with_proposals": 2051,
+  "images_without_proposals": 946,
+  "outcome_images_with_proposals": {
+    "improved": {
+      "count": 525,
+      "rate": 0.25597269624573377
+    },
+    "worsened": {
+      "count": 957,
+      "rate": 0.4666016577279376
+    },
+    "unchanged": {
+      "count": 569,
+      "rate": 0.27742564602632863
+    }
+  },
+  "improvement_km_images_with_proposals": {
+    "mean": -829.3462625576636,
+    "quantiles": {
+      "0.05": -8671.14430391397,
+      "0.25": -530.8607262343069,
+      "0.5": 0.0,
+      "0.75": 0.016464519488382047,
+      "0.95": 2180.806206817997
+    }
+  },
+  "proposal_count_vs_improvement_km": {
+    "spearman": {
+      "coefficient": -0.04000246063120015,
+      "p_value": 0.07010205785061811
+    },
+    "pearson": {
+      "coefficient": -0.020320746858963946,
+      "p_value": 0.3576672162639919
+    }
+  }
+}

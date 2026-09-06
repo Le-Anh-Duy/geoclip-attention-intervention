@@ -10,3 +10,6 @@ numpy
 geopy
 python-multipart
 tqdm
+huggingface-hub
+onnx
+onnxruntime

@@ -1,0 +1,63 @@
+{
+  "dataset": "lbgan2000/imgps3k-yfcc4k-cleaned",
+  "evaluated_images": 2997,
+  "failed_images": 0,
+  "device": "cuda",
+  "gpu": "Tesla T4",
+  "wedetect_provider": "CUDAExecutionProvider",
+  "config": {
+    "score_threshold": 0.4,
+    "iou_threshold": 0.7,
+    "proposal_top_k": 1000,
+    "layer": 23,
+    "a": 1.0,
+    "b": 0.0,
+    "proposal_mode": "union_all",
+    "baseline_batch_size": 64
+  },
+  "proposal_statistics": {
+    "images_with_proposals": 2050,
+    "images_without_proposals": 947,
+    "total_unique_patch_masks": 5663,
+    "mean_per_image": 1.8895562228895562,
+    "median_per_image": 1.0,
+    "max_per_image": 24,
+    "mean_union_patch_count": 87.4341007674341,
+    "median_union_patch_count": 54.0,
+    "max_union_patch_count": 256,
+    "mean_union_coverage": 0.34153945612278946,
+    "images_with_full_patch_coverage": 260
+  },
+  "metrics": {
+    "baseline": {
+      "mean_distance_km": 1763.001499960349,
+      "median_distance_km": 241.78190985130797,
+      "accuracy": {
+        "acc_1_km": 0.1304637971304638,
+        "acc_25_km": 0.321654988321655,
+        "acc_200_km": 0.47981314647981316,
+        "acc_750_km": 0.665331998665332,
+        "acc_2500_km": 0.8228228228228228
+      }
+    },
+    "union_all": {
+      "mean_distance_km": 1808.5360446999855,
+      "median_distance_km": 242.3543924654072,
+      "accuracy": {
+        "acc_1_km": 0.12679346012679346,
+        "acc_25_km": 0.319652986319653,
+        "acc_200_km": 0.48181514848181517,
+        "acc_750_km": 0.6656656656656657,
+        "acc_2500_km": 0.8198198198198198
+      }
+    }
+  },
+  "timing_seconds": {
+    "baseline": 200.33002065100004,
+    "proposal_stage_this_run": 610.6479747860001
+  },
+  "artifacts": {
+    "per_image": "/content/img2gps3k_wedetect_union_eval/per_image.csv",
+    "summary": "/content/img2gps3k_wedetect_union_eval/summary.json"
+  }
+}
