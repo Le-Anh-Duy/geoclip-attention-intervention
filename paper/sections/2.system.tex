@@ -1,0 +1,109 @@
+\section{System}
+\label{sec:system}
+
+\begin{figure}[t]
+  \centering
+  \placeholderfig{32mm}{figures/system.pdf --- architecture: image
+  $\rightarrow$ Grounding DINO (vocabulary) $\rightarrow$ boxes
+  $\rightarrow$ patch mask $\rightarrow$ CLIP ViT-L/14 with per-layer key
+  bias $\rightarrow$ GeoCLIP gallery $\rightarrow$ two predictions on a map}
+  \caption{Overview of GeoProbe. The unmodified and intervened forward
+  passes share a single loaded model, GPS gallery and set of location
+  embeddings; only the vision tower is re-executed.}
+  \label{fig:system}
+\end{figure}
+
+\subsection{Background}
+
+GeoCLIP~\cite{cepeda2023geoclip} encodes an image $x$ with a CLIP ViT-L/14
+vision tower $f_{\mathrm{img}}$ and encodes GPS coordinates with a separate
+location encoder $f_{\mathrm{loc}}$. Inference selects the gallery
+coordinate whose embedding attains the highest cosine similarity with the
+image embedding,
+\begin{equation}
+  \hat{g}(x) = \arg\max_{g \in \mathcal{G}}
+  \; \langle \bar{f}_{\mathrm{img}}(x),\, \bar{f}_{\mathrm{loc}}(g) \rangle ,
+\end{equation}
+where $\bar{\cdot}$ denotes $L_2$ normalisation and $\mathcal{G}$ is a fixed
+gallery of $10^{5}$ coordinates. GeoProbe leaves $f_{\mathrm{loc}}$ and
+$\mathcal{G}$ unmodified throughout; every intervention acts upon
+$f_{\mathrm{img}}$ alone, so that any change in $\hat{g}$ is attributable to
+the image pathway.
+
+\subsection{Region-Conditioned Attention Intervention}
+\label{sec:intervention}
+
+In each of the $L=24$ self-attention layers of the vision tower, attention
+weights are obtained as $\mathrm{softmax}(QK^{\top}/\sqrt{d})$ over a
+sequence of $257$ tokens: one \texttt{CLS} token followed by $256$ patch
+tokens arranged on a $16 \times 16$ grid. Given a region mask
+$m \in \{0,1\}^{256}$ indicating the patches falling within the selected
+region, GeoProbe adds a key-indexed bias to the attention logits of layer
+$\ell$ prior to the softmax,
+\begin{equation}
+  A^{(\ell)} = \mathrm{softmax}\!\left(
+  \frac{QK^{\top}}{\sqrt{d}} + \beta^{(\ell)} \right),
+  \qquad
+  \beta^{(\ell)}_{j} =
+  \begin{cases}
+    0      & j = 0 \quad (\texttt{CLS}), \\
+    a_\ell & j > 0,\; m_{j-1} = 1, \\
+    b_\ell & j > 0,\; m_{j-1} = 0.
+  \end{cases}
+  \label{eq:bias}
+\end{equation}
+
+Three properties of this formulation are relevant to its use as an
+analytical primitive. First, the bias is indexed by key and broadcast across
+all queries and attention heads, so that every token in the layer ---
+including \texttt{CLS} in its role as a query --- draws proportionally more
+information from within the region when $a_\ell > 0$, and less from outside
+it when $b_\ell < 0$. Second, the operation corresponds exactly to a
+multiplicative reweighting of attention mass by $\exp(\beta_j)$, which
+preserves the interpretability of the control: the interface may present the
+same quantity either as a logit bias or as a scale factor. Third,
+$a_\ell = b_\ell = 0$ constitutes an exact no-op, so that the reported
+baseline is the unmodified model rather than an approximation of it.
+
+The \texttt{CLS} key is never biased. As a summary token rather than a
+spatial patch, the distinction between the interior and the exterior of a
+region does not apply to it, and biasing it would confound the regional
+effect with a global rescaling of the summary pathway.
+
+\subsection{Mapping Regions to Patches}
+
+A region delineated on the original image cannot be transferred to the patch
+grid directly, since CLIP preprocesses images by resizing the shorter side
+to $224$ pixels and subsequently applying a centre crop. GeoProbe replicates
+this geometry on the region coordinates, so that a patch is marked as
+in-region only if it remains in-region after preprocessing. Regions falling
+entirely outside the centre crop yield an empty mask; the system reports
+such cases explicitly rather than silently applying a no-op, and they are
+excluded from the evaluation of Section~\ref{sec:experiments}. Multiple
+regions are combined by union.
+
+\subsection{Open-Vocabulary Region Proposals}
+
+Manually delineated rectangles illustrate the mechanism but neither scale to
+a complete dataset nor exclude the influence of the user's prior hypothesis
+upon the region selected. GeoProbe therefore additionally accepts regions
+produced by Grounding DINO~\cite{liu2024groundingdino}, which localises
+objects specified by free-form text. We employ a vocabulary of geographic
+cues --- \texttt{street sign}, \texttt{utility pole}, \texttt{road marking},
+\texttt{bollard}, \texttt{license plate}, \texttt{architecture},
+\texttt{vegetation} and \texttt{sidewalk tiles} --- with box and text
+thresholds of $0.4$ and $0.3$ respectively. The detector never observes
+ground-truth coordinates, and detection is decoupled from intervention:
+boxes are computed once per image and cached, so that the interactive loop
+remains responsive.
+
+\subsection{Implementation}
+
+The backend is a FastAPI server that loads GeoCLIP once at startup and
+patches the eager attention forward pass of all $24$ vision layers according
+to Eq.~\ref{eq:bias}. The frontend is a React application providing region
+selection, per-layer control and map display. A single request returns both
+the unmodified and the intervened top-$k$ predictions, so that the
+comparison presented to the user is always between two forward passes of
+identical weights.
+\TODO{add one sentence reporting per-request latency on the demo machine}

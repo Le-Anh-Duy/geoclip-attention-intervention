@@ -1,0 +1,51 @@
+\section{Introduction}
+
+Estimating the geographic origin of a photograph from its pixels alone has
+progressed from retrieval over geotagged collections~\cite{hays2008im2gps},
+through classification over discretised geographic
+cells~\cite{weyand2016planet,pramanick2022translocator}, to contrastive
+alignment between images and continuous GPS coordinates.
+GeoCLIP~\cite{cepeda2023geoclip} exemplifies the latter paradigm: a
+CLIP~\cite{radford2021clip} vision tower is aligned with a location encoder,
+and inference reduces to nearest-neighbour retrieval over a gallery of
+$10^{5}$ GPS coordinates. Such models attain accuracies that render them
+practically useful and, simultaneously, consequential, as the same
+capability supports both the verification of news imagery and the inference
+of location from photographs shared without geotags.
+
+Despite this, the evidential basis of an individual prediction remains
+largely opaque. It is widely assumed that these models exploit road
+markings, vegetation, licence plates and shopfront text, but the supporting
+evidence is predominantly anecdotal or derived from attention maps.
+Attention distributions are correlational, and have been shown to be an
+unreliable indication of the quantities upon which a model
+depends~\cite{jain2019attention}; the same limitation applies to
+gradient-based saliency~\cite{selvaraju2017gradcam} and to attention
+rollout~\cite{abnar2020rollout}. The question of practical interest ---
+whether a prediction would persist if the model were unable to attend to a
+particular region --- is causal in nature, and therefore requires
+intervention upon the model rather than inspection of it.
+
+Intervention-based analysis is established practice in the study of language
+models, where ablating specific attention pathways identifies the internal
+routes along which factual information
+propagates~\cite{meng2022rome,geva2023dissecting}. The present work
+transfers that methodology to image geolocation and renders it interactive,
+so that the effect of removing a given visual cue may be observed directly.
+
+We present GeoProbe. The contributions of this demonstration are as follows.
+
+\begin{itemize}
+  \item An interactive system that applies region-conditioned, per-layer
+  attention intervention to the GeoCLIP vision tower at inference time,
+  requiring neither training, gradients nor architectural modification, and
+  that presents the unmodified and intervened predictions jointly on a map.
+  \item An open-vocabulary interface in which Grounding
+  DINO~\cite{liu2024groundingdino} converts a textual vocabulary of
+  geographic cues into the regions subjected to intervention, permitting
+  named concepts rather than manually delineated rectangles to be examined.
+  \item A quantitative study on Img2GPS3k~\cite{vo2017revisiting} that
+  searches attention biases over early, middle and late layer groups and
+  reports the resulting geolocation accuracy, thereby establishing the
+  extent to which the prediction is steerable through attention alone.
+\end{itemize}

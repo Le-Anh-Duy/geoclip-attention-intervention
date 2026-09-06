@@ -1,0 +1,27 @@
+\section*{Appendix: Supplementary Material}
+
+\subsubsection*{Demonstration video.}
+\TODO{URL} (\TODO{duration}, within the three-minute limit). The video
+presents the three scenarios of Section~\ref{sec:demo} end to end on a live
+instance of the system.
+
+\subsubsection*{Source code.}
+\TODO{repository URL}. The repository contains the FastAPI backend, the
+React frontend, the Grounding DINO preparation notebook that produces the
+detection manifest for Img2GPS3k, and the search notebook that reproduces
+Table~\ref{tab:main}.
+
+\subsubsection*{Models and data.}
+GeoCLIP with a CLIP ViT-L/14 vision tower and the released $10^{5}$-point
+GPS gallery; Grounding DINO
+(\texttt{IDEA-Research/grounding-dino-base}) with box and text thresholds of
+$0.4$ and $0.3$; and Img2GPS3k ($2{,}997$ images). No component is
+fine-tuned or retrained.
+
+\subsubsection*{Reproducing the quantitative study.}
+\TODO{exact commands, seed $42$, and the wall-clock runtime of the complete
+search on the hardware used}
+
+\subsubsection*{Hardware for the live demonstration.}
+\TODO{laptop GPU and memory, whether a CPU-only fallback is supported, and
+the per-request latency in each configuration}
