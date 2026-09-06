@@ -24,28 +24,23 @@ gradient-based saliency~\cite{selvaraju2017gradcam} and to attention
 rollout~\cite{abnar2020rollout}. The question of practical interest ---
 whether a prediction would persist if the model were unable to attend to a
 particular region --- is causal in nature, and therefore requires
-intervention upon the model rather than inspection of it.
+intervention upon the model rather than inspection of it. Such analysis is
+established practice in the study of language models, where ablating
+specific attention pathways identifies the internal routes along which
+factual information propagates~\cite{meng2022rome,geva2023dissecting}. The
+present work transfers that methodology to image geolocation and renders it
+interactive, so that the effect of removing a given visual cue may be
+observed directly.
 
-Intervention-based analysis is established practice in the study of language
-models, where ablating specific attention pathways identifies the internal
-routes along which factual information
-propagates~\cite{meng2022rome,geva2023dissecting}. The present work
-transfers that methodology to image geolocation and renders it interactive,
-so that the effect of removing a given visual cue may be observed directly.
-
-We present GeoProbe. The contributions of this demonstration are as follows.
-
-\begin{itemize}
-  \item An interactive system that applies region-conditioned, per-layer
-  attention intervention to the GeoCLIP vision tower at inference time,
-  requiring neither training, gradients nor architectural modification, and
-  that presents the unmodified and intervened predictions jointly on a map.
-  \item An open-vocabulary interface in which Grounding
-  DINO~\cite{liu2024groundingdino} converts a textual vocabulary of
-  geographic cues into the regions subjected to intervention, permitting
-  named concepts rather than manually delineated rectangles to be examined.
-  \item A quantitative study on Img2GPS3k~\cite{vo2017revisiting} that
-  searches attention biases over early, middle and late layer groups and
-  reports the resulting geolocation accuracy, thereby establishing the
-  extent to which the prediction is steerable through attention alone.
-\end{itemize}
+We present GeoProbe, whose contributions are threefold. First, an
+interactive system applying region-conditioned, per-layer attention
+intervention to the GeoCLIP vision tower at inference time, requiring
+neither training, gradients nor architectural modification, and presenting
+the unmodified and intervened predictions jointly on a map. Second, an
+open-vocabulary interface in which Grounding
+DINO~\cite{liu2024groundingdino} converts a textual vocabulary of geographic
+cues into the regions subjected to intervention, so that named concepts
+rather than manually delineated rectangles are examined. Third, a
+quantitative study on Img2GPS3k~\cite{vo2017revisiting} searching attention
+biases over early, middle and late layer groups, establishing the extent to
+which the prediction is steerable through attention alone.

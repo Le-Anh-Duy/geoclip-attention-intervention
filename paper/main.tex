@@ -18,8 +18,11 @@
 \newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 % Placeholder box so the document compiles before the figures exist.
 % Replace each \placeholderfig with \includegraphics[width=...]{figures/...}.
+% The trailing \vspace matches the LNCS page-squeezing idiom; keep it when
+% swapping in \includegraphics.
 \newcommand{\placeholderfig}[2]{%
-  \fbox{\parbox[c][#1][c]{0.95\linewidth}{\centering\footnotesize\textcolor{red}{#2}}}}
+  \fbox{\parbox[c][#1][c]{0.95\linewidth}{\centering\footnotesize\textcolor{red}{#2}}}%
+  \vspace{-4mm}}
 % -----------------------------------------------------------------------
 
 \begin{document}

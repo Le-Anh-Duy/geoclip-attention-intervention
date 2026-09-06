@@ -1,19 +1,28 @@
 \section{Quantitative Study}
 \label{sec:experiments}
 
+\begin{figure}[t]
+  \centering
+  \placeholderfig{32mm}{figures/qualitative.png --- three or four examples:
+  original image with detected box, unmodified prediction, intervened
+  prediction, and the resulting displacement in km}
+  \caption{Qualitative examples. \TODO{describe each case}}
+  \label{fig:qualitative}
+  \vspace{-3mm}
+\end{figure}
+
 \subsection{Experimental Setup}
 
 We evaluate on Img2GPS3k~\cite{vo2017revisiting}, comprising $2{,}997$
 images with ground-truth coordinates. Grounding DINO produces the regions
-from the eight-concept vocabulary described in Section~\ref{sec:system};
-images for which no detected box survives the mapping into CLIP's centre
-crop are reported and excluded, and their number is stated so that the
-evaluated subset is unambiguous (\TODO{$N$ evaluated, $N$ excluded}). We
-report the mean and median top-$1$ geodesic error together with accuracy
-within the conventional $1$, $25$, $200$, $750$ and $2{,}500$~km thresholds.
-The location encoder and the gallery embeddings are computed once and reused
-across all configurations, so that the rows of Table~\ref{tab:main} differ
-solely in the attention of the vision tower.
+from the eight-concept vocabulary of Section~\ref{sec:system}; images for
+which no detected box survives the mapping into CLIP's centre crop are
+excluded, and their number reported, so that the evaluated subset is
+unambiguous (\TODO{$N$ evaluated, $N$ excluded}). We report mean and median
+top-$1$ geodesic error and accuracy within the conventional $1$, $25$,
+$200$, $750$ and $2{,}500$~km thresholds. The location encoder and gallery
+embeddings are computed once and reused, so the rows of
+Table~\ref{tab:main} differ solely in the attention of the vision tower.
 
 \subsection{Grouped Attention Search}
 
@@ -52,28 +61,6 @@ GeoCLIP (baseline) & -- & -- & -- & -- & -- & -- & -- \\
 \end{tabular}
 \end{table}
 
-\begin{table}[t]
-\centering
-\caption{Effect of restricting the intervention to a single layer group at
-the best searched magnitude. \TODO{populate; if the search does not isolate
-groups, either evaluate the three single-group configurations explicitly or
-omit this table}}
-\label{tab:groups}
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{L{3.4cm}|P{1.4cm}P{1.4cm}P{1.4cm}|P{1.7cm}P{1.7cm}}
-\toprule
-\textbf{Active group} & $\delta_1$ & $\delta_2$ & $\delta_3$ &
-\textbf{Mean (km)} & \textbf{$\Delta$ base} \\
-\midrule
-None (baseline) & 0 & 0 & 0 & -- & --- \\
-Early ($0$--$7$) & -- & 0 & 0 & -- & -- \\
-Middle ($8$--$15$) & 0 & -- & 0 & -- & -- \\
-Late ($16$--$23$) & 0 & 0 & -- & -- & -- \\
-All three & -- & -- & -- & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{Results}
 
 \TODO{to be written once the search has completed}
@@ -100,12 +87,3 @@ region-conditioned intervention must be compared against an area-matched
 random region; otherwise an apparent effect may reflect the proportion of
 the image perturbed rather than its content.
 \TODO{this control is the most probable reviewer objection}
-
-\begin{figure}[t]
-  \centering
-  \placeholderfig{32mm}{figures/qualitative.png --- three or four examples:
-  original image with detected box, unmodified prediction, intervened
-  prediction, and the resulting displacement in km}
-  \caption{Qualitative examples. \TODO{describe each case}}
-  \label{fig:qualitative}
-\end{figure}
