@@ -1,0 +1,24 @@
+\begin{table}[t]
+\centering
+\caption{Geolocation accuracy on Img2GPS3k under attention intervention. The
+first row is the unmodified GeoCLIP model; the suppression and amplification
+rows apply a uniform bias to every layer.}
+\label{tab:main}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{L{3.7cm}|P{1.2cm}P{1.2cm}|P{0.9cm}P{0.9cm}P{0.9cm}P{0.9cm}P{1cm}}
+\toprule
+\multirow{2}{*}{\textbf{Configuration}} &
+\multicolumn{2}{c|}{\textbf{Error (km)}} &
+\multicolumn{5}{c}{\textbf{Accuracy (\%) within}} \\
+ & Mean & Median & 1 km & 25 km & 200 km & 750 km & 2500 km \\
+\midrule
+GeoCLIP (baseline) & -- & -- & -- & -- & -- & -- & -- \\
+\midrule
+\quad + suppress regions & -- & -- & -- & -- & -- & -- & -- \\
+\quad + amplify regions & -- & -- & -- & -- & -- & -- & -- \\
+\quad + searched $\delta$ & -- & -- & -- & -- & -- & -- & -- \\
+\midrule
+\quad + random regions (control) & -- & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}

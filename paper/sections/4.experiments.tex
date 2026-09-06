@@ -34,32 +34,11 @@ $\delta$ favours the detected regions, negative $\delta$ favours their
 complement, and $\delta_1 = \delta_2 = \delta_3 = 0$ recovers the unmodified
 model exactly. Candidates are sampled uniformly from
 $\delta_i \in [-3, 3]$ over \TODO{$T$} trials with seed $42$, minimising the
-mean top-$1$ distance.
+mean top-$1$ distance. The suppression and amplification rows of
+Table~ef{tab:main} instead fix $\delta_1 = \delta_2 = \delta_3 = \mp 2$,
+applying the same bias to every layer.
 
-\begin{table}[t]
-\centering
-\caption{Geolocation accuracy on Img2GPS3k under attention intervention. The
-first row is the unmodified GeoCLIP model. \TODO{populate from
-\texttt{random\_search\_results.csv} and \texttt{best\_config.json}}}
-\label{tab:main}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{L{3.7cm}|P{1.2cm}P{1.2cm}|P{0.9cm}P{0.9cm}P{0.9cm}P{0.9cm}P{1cm}}
-\toprule
-\multirow{2}{*}{\textbf{Configuration}} &
-\multicolumn{2}{c|}{\textbf{Error (km)}} &
-\multicolumn{5}{c}{\textbf{Accuracy (\%) within}} \\
- & Mean & Median & 1 km & 25 km & 200 km & 750 km & 2500 km \\
-\midrule
-GeoCLIP (baseline) & -- & -- & -- & -- & -- & -- & -- \\
-\midrule
-\quad + suppress regions & -- & -- & -- & -- & -- & -- & -- \\
-\quad + amplify regions & -- & -- & -- & -- & -- & -- & -- \\
-\quad + searched $\delta$ & -- & -- & -- & -- & -- & -- & -- \\
-\midrule
-\quad + random regions (control) & -- & -- & -- & -- & -- & -- & -- \\
-\bottomrule
-\end{tabular}
-\end{table}
+\input{tables/tab_main}
 
 \subsection{Results}
 
@@ -82,8 +61,8 @@ GeoCLIP (baseline) & -- & -- & -- & -- & -- & -- & -- \\
 %      motivates representation-level intervention.
 % ---------------------------------------------------------------------
 
-The random-region control is material to the interpretation in every case. A
-region-conditioned intervention must be compared against an area-matched
-random region; otherwise an apparent effect may reflect the proportion of
-the image perturbed rather than its content.
-\TODO{this control is the most probable reviewer objection}
+The control row is material to the interpretation in every case. Each image's
+patch mask is rolled cyclically by a random offset on the $16 	imes 16$ grid,
+yielding a region of identical shape and identical patch count at an
+uninformative location. An effect that survives this substitution would
+reflect the proportion of the image perturbed rather than its content.
