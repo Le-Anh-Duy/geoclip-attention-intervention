@@ -1,0 +1,16 @@
+{
+  "id": "giahuytran1/geoclip-detector-offline-assets",
+  "title": "GeoCLIP Detector Offline Assets",
+  "code_file": "geoclip-detector-offline-assets.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "machine_shape": "",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

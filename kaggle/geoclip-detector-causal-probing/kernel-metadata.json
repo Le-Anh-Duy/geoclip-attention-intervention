@@ -1,0 +1,16 @@
+{
+  "id": "giahuytran1/geoclip-detector-causal-probing",
+  "title": "GeoCLIP Detector Causal Probing",
+  "code_file": "geoclip-detector-causal-probing.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "machine_shape": "NvidiaRtxPro6000",
+  "dataset_sources": ["lbgan2000/imgps3k-yfcc4k-cleaned"],
+  "competition_sources": ["arc-prize-2026-arc-agi-3"],
+  "kernel_sources": ["giahuytran1/geoclip-detector-offline-assets"],
+  "model_sources": []
+}
