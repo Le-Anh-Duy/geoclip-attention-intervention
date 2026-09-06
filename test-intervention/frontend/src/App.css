@@ -218,6 +218,11 @@ body {
   background: var(--gray-bg);
 }
 
+.pill-blue {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
 /* Image region selector */
 .file-drop {
   display: inline-flex;
@@ -275,6 +280,68 @@ body {
   border-color: var(--amber);
   background: color-mix(in srgb, var(--amber) 18%, transparent);
   pointer-events: none;
+}
+
+.proposal-box {
+  position: absolute;
+  padding: 0;
+  border: 1.5px solid rgba(37, 99, 235, 0.75);
+  background: rgba(37, 99, 235, 0.06);
+  color: white;
+  cursor: pointer;
+}
+
+.proposal-box span {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  min-width: 18px;
+  padding: 1px 4px;
+  background: rgba(37, 99, 235, 0.9);
+  font-size: 10px;
+  line-height: 15px;
+  font-weight: 700;
+}
+
+.proposal-box-selected {
+  z-index: 2;
+  border: 2px solid var(--green);
+  background: color-mix(in srgb, var(--green) 20%, transparent);
+}
+
+.proposal-box-selected span {
+  background: var(--green);
+}
+
+.proposal-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.proposal-button {
+  border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
+  color: var(--primary);
+}
+
+.proposal-summary {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.proposal-limit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.proposal-limit input {
+  width: 64px;
 }
 
 .hint {
@@ -615,4 +682,50 @@ input:focus {
 
 .metric-red {
   color: #dc2626;
+}
+
+.proposal-table-wrap {
+  overflow-x: auto;
+}
+
+.proposal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.proposal-table th,
+.proposal-table td {
+  padding: 9px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.proposal-table th {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.proposal-table tbody tr {
+  cursor: pointer;
+}
+
+.proposal-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.proposal-evaluation-note {
+  margin-top: 4px;
+}
+
+.metric-positive {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.metric-negative {
+  color: #dc2626;
+  font-weight: 600;
 }

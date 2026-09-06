@@ -1,0 +1,80 @@
+{
+  "dataset": "lbgan2000/imgps3k-yfcc4k-cleaned",
+  "evaluated_images": 2997,
+  "failed_images": 0,
+  "device": "cuda",
+  "gpu": "Tesla T4",
+  "wedetect_provider": "CUDAExecutionProvider",
+  "config": {
+    "score_threshold": 0.4,
+    "iou_threshold": 0.7,
+    "proposal_top_k": 1000,
+    "layer": 23,
+    "a": 1.0,
+    "b": 0.0,
+    "baseline_batch_size": 64,
+    "proposal_batch_size": 8
+  },
+  "proposal_statistics": {
+    "images_with_proposals": 2050,
+    "images_without_proposals": 947,
+    "total_unique_patch_masks": 5663,
+    "mean_per_image": 1.8895562228895562,
+    "median_per_image": 1.0,
+    "max_per_image": 24
+  },
+  "metrics": {
+    "baseline": {
+      "mean_distance_km": 1763.001499960349,
+      "median_distance_km": 241.78190985130797,
+      "accuracy": {
+        "acc_1_km": 0.1304637971304638,
+        "acc_25_km": 0.321654988321655,
+        "acc_200_km": 0.47981314647981316,
+        "acc_750_km": 0.665331998665332,
+        "acc_2500_km": 0.8228228228228228
+      }
+    },
+    "top_objectness": {
+      "mean_distance_km": 1815.6820657006672,
+      "median_distance_km": 244.3254182450848,
+      "accuracy": {
+        "acc_1_km": 0.12746079412746078,
+        "acc_25_km": 0.3203203203203203,
+        "acc_200_km": 0.4788121454788121,
+        "acc_750_km": 0.6659993326659993,
+        "acc_2500_km": 0.8184851518184851
+      }
+    },
+    "oracle_proposal": {
+      "mean_distance_km": 1736.9735005640111,
+      "median_distance_km": 219.13843219259897,
+      "accuracy": {
+        "acc_1_km": 0.12979646312979645,
+        "acc_25_km": 0.32599265932599264,
+        "acc_200_km": 0.4901568234901568,
+        "acc_750_km": 0.67334000667334,
+        "acc_2500_km": 0.8261594928261595
+      }
+    },
+    "oracle_with_baseline": {
+      "mean_distance_km": 1671.5984051891435,
+      "median_distance_km": 213.6061746285111,
+      "accuracy": {
+        "acc_1_km": 0.13179846513179846,
+        "acc_25_km": 0.3283283283283283,
+        "acc_200_km": 0.4931598264931598,
+        "acc_750_km": 0.6776776776776777,
+        "acc_2500_km": 0.8314981648314982
+      }
+    }
+  },
+  "timing_seconds": {
+    "baseline": 211.05445251599986,
+    "proposal_stage_this_run": 876.175051448
+  },
+  "artifacts": {
+    "per_image": "/content/img2gps3k_wedetect_eval/per_image.csv",
+    "summary": "/content/img2gps3k_wedetect_eval/summary.json"
+  }
+}
