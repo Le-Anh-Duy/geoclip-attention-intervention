@@ -3,6 +3,8 @@
 **/venv/
 **/__pycache__/
 **/*.py[cod]
+**/.pytest_cache/
+**/.ruff_cache/
 **/node_modules/
 **/.vite/
 **/dist/
@@ -42,3 +44,6 @@
 paper/build.log
 paper/main.log
 paper/main.pdf
+
+# Maintained separately on feat/standalone-kaggle-jupyter-mcp
+/tools/kaggle-jupyter-mcp/
