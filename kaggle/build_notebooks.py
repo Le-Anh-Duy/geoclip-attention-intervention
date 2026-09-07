@@ -66,3 +66,10 @@ build(
     "WeDetect-guided GeoCLIP layer, head, and signal search",
     "Full-test offline search over all 24 layers, all 16 attention heads, query scope, proposal dose, and baseline internal signals. Configuration selection uses a deterministic discovery split and reports a locked holdout.",
 )
+build(
+    "wedetect-geoclip-layer-synergy",
+    "search_synergy.py",
+    "wedetect-geoclip-layer-synergy.ipynb",
+    "WeDetect-guided GeoCLIP layer synergy test",
+    "Confirmatory full-test search over every combination of discovery-positive layers, with fixed and layer-count-normalized intervention strength. The prior search selects candidates; a locked holdout tests whether combining layers beats the best single layer.",
+)
