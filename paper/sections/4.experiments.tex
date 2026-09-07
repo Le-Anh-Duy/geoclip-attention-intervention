@@ -1,89 +1,84 @@
 \section{Quantitative Study}
 \label{sec:experiments}
 
-\begin{figure}[t]
-  \centering
-  \placeholderfig{32mm}{figures/qualitative.png --- three or four examples:
-  original image with detected box, unmodified prediction, intervened
-  prediction, and the resulting displacement in km}
-  \caption{Qualitative examples. \TODO{describe each case}}
-  \label{fig:qualitative}
-  \vspace{-3mm}
-\end{figure}
-
 \subsection{Experimental Setup}
 
-We evaluate on Img2GPS3k~\cite{vo2017revisiting}, comprising $2{,}997$
-images with ground-truth coordinates. Grounding DINO produces the regions
-from the eight-concept vocabulary of Section~\ref{sec:system}; images for
-which no detected box survives the mapping into CLIP's centre crop are
-excluded, and their number reported, so that the evaluated subset is
-unambiguous (\TODO{$N$ evaluated, $N$ excluded}). We report mean and median
-top-$1$ geodesic error and accuracy within the conventional $1$, $25$,
-$200$, $750$ and $2{,}500$~km thresholds. The location encoder and gallery
-embeddings are computed once and reused, so the rows of
-Table~\ref{tab:main} differ solely in the attention of the vision tower.
+We evaluate on all $2{,}997$ Img2GPS3k images~\cite{vo2017revisiting}.
+WeDetect-Uni Base generates category-agnostic proposals once for the complete
+set. We cache boxes at an objectness threshold of $0.15$ after non-maximum
+suppression ($0.7$ IoU), then form the intervention mask from the union of at
+most $100$ boxes scoring at least $0.4$. This produces $6{,}152$ boxes in
+$2{,}081$ images; $2{,}058$ images retain a non-empty mask after CLIP's centre
+crop. Images without an active mask remain in the evaluation as exact no-ops,
+so the reported metrics describe the complete benchmark.
 
-\subsection{Grouped Attention Search}
+For every active layer and all its $16$ heads, the in-region and out-of-region
+biases are initially $a=+2$ and $b=-2$. We measure top-1 geodesic error and
+prediction displacement. For image $i$, improvement is
+$\Delta_i=d_i^{\mathrm{base}}-d_i^{\mathrm{int}}$, so positive values are
+better. Because a gallery change can move a prediction across continents, the
+selection score is the mean of
+$\operatorname{clip}(\Delta_i,-2500,2500)$~km. Confidence intervals use
+$10{,}000$ paired bootstrap resamples over images.
 
-The $24$ layers are partitioned into three contiguous groups --- early
-($0$--$7$), middle ($8$--$15$) and late ($16$--$23$) --- each governed by a
-single parameter $\delta_i$, with in-region bias $a_i = \delta_i$ and
-out-of-region bias $b_i = -\delta_i$ for every layer of group $i$. Positive
-$\delta$ favours the detected regions, negative $\delta$ favours their
-complement, and $\delta_1 = \delta_2 = \delta_3 = 0$ recovers the unmodified
-model exactly. Candidates are sampled uniformly from
-$\delta_i \in [-3, 3]$ over \TODO{$T$} trials with seed $42$, minimising the
-mean top-$1$ distance.
+We deterministically assign $1{,}079$ images to discovery and $1{,}918$ to
+holdout by hashing the file name. Model selection uses discovery only. A
+preliminary layer sweep supplies five candidates, $\{2,4,7,12,3\}$, ordered by
+its discovery score. We evaluate all $26$ subsets containing two to five of
+these layers under three strength schedules: fixed $2$ per layer,
+$2/\sqrt{k}$, and $2/k$, where $k$ is the number of active layers. Together
+with five single-layer controls, this gives $78$ combinations and five
+controls. The confirmatory pass uses deterministic FP32 with TF32 disabled.
+
+\subsection{Held-Out Results}
+
+The discovery split selects layers $\{2,7,12\}$ with the $2/k$ schedule,
+equivalent to magnitude $0.667$ at each layer. Table~\ref{tab:main} compares
+this configuration with the discovery-selected single-layer control. The
+apparent discovery gain does not transfer: the selected combination changes
+from $+11.94$~km on discovery to $-3.66$~km on holdout. Its paired advantage
+over layer 2 is only $0.64$~km (95\% CI $[-16.83,17.57]$). Thus, the experiment
+does not support the hypothesis that individually promising layers combine
+synergistically.
 
 \begin{table}[t]
 \centering
-\caption{Geolocation accuracy on Img2GPS3k under attention intervention. The
-first row is the unmodified GeoCLIP model. \TODO{populate from
-\texttt{random\_search\_results.csv} and \texttt{best\_config.json}}}
+\caption{Deterministic FP32 results. $\Delta_c$ is mean improvement clipped to
+$\pm2500$~km; positive is better. The multi-layer row is selected on discovery.}
 \label{tab:main}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{L{3.7cm}|P{1.2cm}P{1.2cm}|P{0.9cm}P{0.9cm}P{0.9cm}P{0.9cm}P{1cm}}
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{l|rrrrrr}
 \toprule
-\multirow{2}{*}{\textbf{Configuration}} &
-\multicolumn{2}{c|}{\textbf{Error (km)}} &
-\multicolumn{5}{c}{\textbf{Accuracy (\%) within}} \\
- & Mean & Median & 1 km & 25 km & 200 km & 750 km & 2500 km \\
+\textbf{Configuration} &
+\textbf{Disc. $\Delta_c$} & \textbf{Error} & \textbf{Hold. $\Delta_c$} &
+\textbf{95\% CI} & \textbf{Shift} &
+\textbf{Cosine} \\
+ & \multicolumn{5}{c}{\textbf{km}} & \\
 \midrule
-GeoCLIP (baseline) & -- & -- & -- & -- & -- & -- & -- \\
-\midrule
-\quad + suppress regions & -- & -- & -- & -- & -- & -- & -- \\
-\quad + amplify regions & -- & -- & -- & -- & -- & -- & -- \\
-\quad + searched $\delta$ & -- & -- & -- & -- & -- & -- & -- \\
-\midrule
-\quad + random regions (control) & -- & -- & -- & -- & -- & -- & -- \\
+GeoCLIP baseline & 0.00 & 1716.31 & 0.00 & --- & 0.00 & 1.0000 \\
+Layer 2 & +4.95 & 1731.44 & -4.30 & $[-18.83,9.96]$ & 136.15 & 0.9993 \\
+Layers 2, 7, 12 ($2/k$) & +11.94 & 1728.86 & -3.66 & $[-20.43,12.40]$ & 189.53 & 0.9984 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Results}
+Despite the absence of an accuracy gain, the intervention exposes output
+sensitivity. The selected configuration preserves a mean cosine similarity of
+$0.9984$ to the baseline image embedding, yet moves the predicted coordinate
+by $189.5$~km on average. GeoCLIP retrieves from $10^5$ location embeddings;
+small movements in representation space can therefore cross a gallery
+decision boundary and produce a geographically large change. GeoProbe makes
+this otherwise hidden sensitivity directly observable.
 
-\TODO{to be written once the search has completed}
+Increasing the number of layers does not help on average. With fixed magnitude
+$2$, mean holdout $\Delta_c$ declines from $-8.22$~km for two-layer
+combinations to $-39.35$~km for five layers. The $2/k$ schedule limits this
+accumulation (between $-2.01$ and $-0.13$~km across combination sizes), but
+does not yield a consistent positive effect. Candidate rankings also transfer
+weakly from discovery to holdout ($r=0.259$), underscoring the risk of
+reporting the best result on the same images used to find it.
 
-% ---------------------------------------------------------------------
-% Author note (not rendered). All three outcomes support a demonstration
-% paper; select the framing that matches the numbers obtained.
-%
-%  (a) Intervention improves accuracy. Report the gain and observe that the
-%      mechanism which explains the model also steers it: the detected cues
-%      carry signal that the unmodified attention under-weights.
-%  (b) Intervention degrades accuracy substantially. This is the stronger
-%      explainability result: the detected regions are load-bearing, and the
-%      magnitude of the degradation quantifies the extent. Contrast with the
-%      random-region control to establish that the effect does not follow
-%      merely from perturbing attention at all.
-%  (c) Little changes. Report this plainly: it bounds the proportion of
-%      GeoCLIP's behaviour reachable through attention reweighting alone and
-%      motivates representation-level intervention.
-% ---------------------------------------------------------------------
-
-The random-region control is material to the interpretation in every case. A
-region-conditioned intervention must be compared against an area-matched
-random region; otherwise an apparent effect may reflect the proportion of
-the image perturbed rather than its content.
-\TODO{this control is the most probable reviewer objection}
+The experiment isolates layer-combination effects, not whether WeDetect regions
+are more informative than arbitrary regions; that claim requires an
+area-matched random-mask control and a fresh external test set.

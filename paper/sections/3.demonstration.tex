@@ -3,72 +3,42 @@
 
 \begin{figure}[t]
   \centering
-  \placeholderfig{40mm}{figures/ui-main.png --- the main interface: the
-  uploaded image with a selected region at left, the per-layer bias controls
-  in the centre, and the unmodified and intervened predictions on the map at
-  right}
-  \caption{The GeoProbe interface. The map displays the unmodified
-  prediction and the intervened prediction together with the geodesic
-  distance separating them.}
+  \placeholderfig{40mm}{figures/ui-main.png --- image and selected region at
+  left, layer controls in the centre, and baseline and intervened predictions
+  on the map at right}
+  \caption{GeoProbe displays both predictions and their geodesic displacement.}
   \label{fig:ui_main}
   \vspace{-3mm}
 \end{figure}
 
 A demonstration video of under three minutes is available at
-\TODO{video URL}.
+\TODO{video URL}. Attendees operate the system directly through three short
+scenarios.
 
-\subsection{Interaction}
+\subsubsection{Regional dependence.}
+The attendee uploads a street-level image, marks a visual cue such as a sign or
+licence plate, and suppresses its region. A large map displacement demonstrates
+sensitivity to that evidence; a small displacement indicates that the current
+prediction is stable under the intervention.
 
-Attendees operate the system directly, using either the images provided or
-their own photographs, through three scenarios of increasing analytical
-depth.
+\subsubsection{Proposal comparison.}
+For a benchmark example, cached WeDetect-Uni proposals can be applied
+individually or as a union. The resulting displacements distinguish sensitivity
+to one foreground object from sensitivity to the broader object-bearing region,
+without a text prompt tailored to the image.
 
-\subsubsection{Scenario 1: dependence upon an individual cue.}
-The attendee uploads a street-level photograph and suppresses a single
-region --- a shopfront sign or a licence plate --- by assigning a negative
-in-region bias across all layers. The map is updated with the intervened
-prediction and the resulting displacement. A displacement of several
-thousand kilometres identifies a cue upon which the model demonstrably
-depends; one of a few kilometres indicates that it does not, irrespective of
-the prominence assigned to that region by saliency methods.
-\TODO{specify the image used and the observed displacement}
+\subsubsection{Layer localisation.}
+The attendee compares a single active layer with a multi-layer schedule.
+Broader intervention often increases displacement without improving error,
+mirroring Section~\ref{sec:experiments}. Resetting all biases to zero restores
+the baseline exactly.
 
-\subsubsection{Scenario 2: comparison across cue categories.}
-Rather than delineating a region manually, the attendee selects a concept
-from the Grounding DINO vocabulary; the corresponding detections are loaded
-as the region and the same suppression is applied. Iterating over
-\texttt{street sign}, \texttt{vegetation}, \texttt{architecture} and
-\texttt{license plate} for one image yields an ordering of the named cue
-categories by their causal contribution to that prediction.
+\subsection{Deployment and Relevance}
 
-\subsubsection{Scenario 3: localisation of the effect within the network.}
-The per-layer controls restrict the intervention to the early ($0$--$7$),
-middle ($8$--$15$) or late ($16$--$23$) layer groups. Attendees observe that
-the groups are not interchangeable
-\TODO{state which group dominates, per Table~\ref{tab:groups}},
-substantiating the proposition that geographic evidence is aggregated at a
-particular depth rather than uniformly. The intervention is reversible
-throughout: resetting the biases to zero restores the baseline prediction
-exactly.
-
-\subsection{Setup and Requirements}
-
-GeoProbe operates entirely on a single laptop and requires no network
-connectivity: the GeoCLIP weights, the $10^{5}$-point GPS gallery, the
-precomputed location embeddings and the cached Grounding DINO detections are
-all held locally, and a cached offline tile set substitutes for online map
-tiles. We provide the machine (\TODO{GPU and memory}) and require only table
-space, mains power and, where available, an external monitor. No specialised
-equipment or network access is necessary.
-
-\subsection{Relevance to the MMM Community}
-
-The demonstration addresses three concerns central to this community:
-multimodal vision--language models, whose internal behaviour increasingly
-determines whether a deployed system may be trusted; explainability of a
-causal rather than correlational character, which multimedia forensics
-requires if attribution claims are to withstand scrutiny; and image
-geolocation itself, whose dual use --- supporting the verification of
-imagery on the one hand and the erosion of location privacy on the other ---
-renders an understanding of the evidence these models exploit consequential
-beyond the question of accuracy alone.
+The live system stores GeoCLIP, its $10^5$-point GPS gallery, location
+embeddings, cached proposals and map tiles locally, and therefore requires no
+network connection. GeoProbe connects multimodal geolocation with causal
+explanation: rather than presenting an attention map as evidence, it lets the
+attendee change an attention pathway and observe the consequent geographic
+output. This distinction is relevant to both multimedia verification and the
+privacy risks of inferring location from untagged images.

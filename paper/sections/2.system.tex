@@ -7,7 +7,7 @@
 % \begin{figure}[t]
 %   \centering
 %   \placeholderfig{32mm}{figures/system.pdf --- architecture: image
-%   $\rightarrow$ Grounding DINO (vocabulary) $\rightarrow$ boxes
+%   $\rightarrow$ WeDetect-Uni $\rightarrow$ boxes
 %   $\rightarrow$ patch mask $\rightarrow$ CLIP ViT-L/14 with per-layer key
 %   bias $\rightarrow$ GeoCLIP gallery $\rightarrow$ two predictions on a map}
 %   \caption{Overview of GeoProbe. The unmodified and intervened forward
@@ -20,10 +20,12 @@
 
 GeoCLIP~\cite{cepeda2023geoclip} encodes an image $x$ with a CLIP ViT-L/14
 vision tower $f_{\mathrm{img}}$ and GPS coordinates with a location encoder
-$f_{\mathrm{loc}}$, predicting
-$\hat{g}(x) = \arg\max_{g \in \mathcal{G}}
-\langle \bar{f}_{\mathrm{img}}(x), \bar{f}_{\mathrm{loc}}(g) \rangle$,
-where $\bar{\cdot}$ denotes $L_2$ normalisation and $\mathcal{G}$ is a fixed
+$f_{\mathrm{loc}}$, then retrieves
+\begin{equation*}
+\hat{g}(x)=\arg\max_{g\in\mathcal{G}}
+\langle\bar f_{\mathrm{img}}(x),\bar f_{\mathrm{loc}}(g)\rangle .
+\end{equation*}
+Here, $\bar{\cdot}$ denotes $L_2$ normalisation and $\mathcal{G}$ is a fixed
 gallery of $10^{5}$ coordinates. GeoProbe leaves $f_{\mathrm{loc}}$ and
 $\mathcal{G}$ unmodified throughout; every intervention acts upon
 $f_{\mathrm{img}}$ alone, so that any change in $\hat{g}$ is attributable to
@@ -72,24 +74,21 @@ grid directly, since CLIP resizes the shorter side to $224$ pixels and then
 applies a centre crop. GeoProbe replicates this geometry on the region
 coordinates, so that a patch is marked in-region only if it remains so after
 preprocessing. Regions falling entirely outside the centre crop yield an
-empty mask; such cases are reported explicitly rather than silently treated
-as a no-op, and are excluded from the evaluation of
-Section~\ref{sec:experiments}. Multiple regions are combined by union.
+empty mask and therefore an exact no-op. We retain these cases in the
+full-dataset results and additionally report the active-mask subset. Multiple
+regions are combined by union.
 
-\subsection{Open-Vocabulary Region Proposals}
+\subsection{Prompt-Free Region Proposals}
 
-Manually delineated rectangles illustrate the mechanism but neither scale to
-a complete dataset nor exclude the influence of the user's prior hypothesis
-upon the region selected. GeoProbe therefore additionally accepts regions
-produced by Grounding DINO~\cite{liu2024groundingdino}, which localises
-objects specified by free-form text. We employ a vocabulary of geographic
-cues --- \texttt{street sign}, \texttt{utility pole}, \texttt{road marking},
-\texttt{bollard}, \texttt{license plate}, \texttt{architecture},
-\texttt{vegetation} and \texttt{sidewalk tiles} --- with box and text
-thresholds of $0.4$ and $0.3$. The detector never observes ground-truth
-coordinates, and detection is decoupled from intervention: boxes are
-computed once per image and cached, so the interactive loop remains
-responsive.
+Manually delineated rectangles support targeted case studies, but they do
+not scale to a complete dataset and make the analysis depend on a
+user-supplied concept. For systematic evaluation, GeoProbe uses WeDetect-Uni,
+a universal proposal generator trained with a learned objectness prompt to
+retrieve category-agnostic foreground boxes~\cite{fu2026wedetect}. It
+therefore does not require adapting a text prompt to each image. The detector
+never observes ground-truth coordinates. Proposals are computed once and
+cached; downstream layer searches only change the attention intervention, so
+every configuration receives identical regions.
 
 \subsection{Implementation}
 
@@ -98,5 +97,7 @@ attention forward pass of all $24$ vision layers according to
 Eq.~\ref{eq:bias}; a React frontend provides region selection, per-layer
 control and map display. One request returns both the unmodified and the
 intervened top-$k$ predictions, so the comparison presented to the user is
-always between two forward passes of identical weights.
+always between two forward passes of identical weights. Manual rectangles
+are used in the live interaction, while cached WeDetect-Uni proposals provide
+the reproducible dataset-scale analysis reported below.
 \TODO{one sentence reporting per-request latency}

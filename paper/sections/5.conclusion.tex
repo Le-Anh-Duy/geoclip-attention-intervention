@@ -1,13 +1,17 @@
 \section{Conclusion}
 
-We have presented GeoProbe, an interactive system that renders the question
-of what a geolocation model attends to amenable to experiment rather than to
-inspection alone. By biasing pre-softmax attention toward or away from an
-open-vocabulary detected region, independently per layer and at inference
-time, the system converts an arbitrary photograph into a causal analysis
-whose outcome is read from the displacement of the predicted coordinate. The
-same mechanism supports both interactive exploration and systematic
-measurement \TODO{restate the principal quantitative finding}. Ongoing work
-extends the system to representation-level intervention and to searched
-vocabularies of geographic cues, so that the concepts analysed are
-discovered rather than specified in advance.
+We have presented GeoProbe, an interactive system that makes the question of
+what a geolocation model uses amenable to intervention rather than inspection
+alone. By biasing pre-softmax attention toward or away from selected regions,
+independently per layer and at inference time, the system turns an arbitrary
+photograph into a causal analysis whose outcome is read from the displacement
+of the predicted coordinate. The same mechanism supports interactive
+exploration and systematic measurement using prompt-free object proposals.
+On Img2GPS3k, the multi-layer configuration selected on discovery did not
+improve held-out geolocation error and did not significantly outperform a
+single-layer intervention. At the same time, it displaced predictions by
+$189.5$~km on average despite a feature cosine similarity of $0.9984$. This
+distinction is central to GeoProbe: sensitivity is an explanatory measurement,
+not evidence of improved prediction. Future work will replace global proposal
+unions with learned sparse proposal selection and validate the resulting
+policy on a fresh, untouched benchmark.

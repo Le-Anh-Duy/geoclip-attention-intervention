@@ -37,10 +37,10 @@ interactive system applying region-conditioned, per-layer attention
 intervention to the GeoCLIP vision tower at inference time, requiring
 neither training, gradients nor architectural modification, and presenting
 the unmodified and intervened predictions jointly on a map. Second, an
-open-vocabulary interface in which Grounding
-DINO~\cite{liu2024groundingdino} converts a textual vocabulary of geographic
-cues into the regions subjected to intervention, so that named concepts
-rather than manually delineated rectangles are examined. Third, a
-quantitative study on Img2GPS3k~\cite{vo2017revisiting} searching attention
-biases over early, middle and late layer groups, establishing the extent to
-which the prediction is steerable through attention alone.
+object-proposal workflow in which WeDetect-Uni~\cite{fu2026wedetect}
+supplies category-agnostic foreground regions without requiring a prompt for
+each image, enabling the same intervention to be evaluated at dataset scale.
+Third, a quantitative study on Img2GPS3k~\cite{vo2017revisiting} that uses a
+discovery/holdout protocol to test single layers and multi-layer
+combinations. The study quantifies output sensitivity while showing that
+apparently favourable search results need not generalise to unseen images.

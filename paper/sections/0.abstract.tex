@@ -1,25 +1,25 @@
 \begin{abstract}
 Worldwide image geolocation models such as GeoCLIP estimate GPS coordinates
-from a single photograph with high accuracy, yet they provide no account of
-which image evidence supports a given prediction. Post-hoc saliency methods
-address this question only correlationally: they indicate where activation
-concentrates, without establishing that the highlighted evidence is what the
-model relies upon. This paper presents GeoProbe, an interactive system for
-causal analysis of image geolocation models. Given an image region ---
-specified manually, or obtained from open-vocabulary Grounding DINO
-detections over a vocabulary of geographic cues such as \texttt{street
-sign}, \texttt{utility pole} and \texttt{license plate} --- GeoProbe adds a
-key-indexed bias to the pre-softmax attention logits of the CLIP vision
-tower, independently per layer, thereby increasing or decreasing the
-attention mass allocated to that region. The system executes GeoCLIP twice,
-without and with the intervention, and reports both predictions together
-with the geodesic distance separating them. The magnitude of this
-displacement constitutes a direct causal measure of the region's
-contribution to the prediction. We further report a search over attention
-biases applied to early, middle and late layer groups on the Img2GPS3k
-benchmark, quantifying the extent to which the geolocation output can be
-manipulated through attention reweighting alone.
-\TODO{add one sentence stating the principal quantitative result}
+from a single photograph, yet they provide no account of which visual evidence
+supports a prediction. Post-hoc saliency is correlational: it indicates where
+activation concentrates without establishing that the highlighted evidence
+causes the output. We present GeoProbe, an interactive system for causal
+analysis of image geolocation. Given a region specified manually or obtained
+from the prompt-free WeDetect-Uni universal proposal generator, GeoProbe adds
+a key-indexed bias to the pre-softmax attention logits of the CLIP vision
+tower, independently per layer. It executes GeoCLIP with and without the
+intervention and displays both predictions and their geodesic displacement.
+On all $2{,}997$ Img2GPS3k images, we search single and multi-layer
+interventions using a discovery split and evaluate the selected configuration
+on a held-out split. A three-layer configuration improves the clipped mean
+error reduction by $11.94$~km on discovery but yields $-3.66$~km on holdout
+(95\% CI $[-20.43,12.40]$), and does not significantly outperform the
+selected single layer. Nevertheless, it moves the predicted coordinate by
+$189.5$~km on average while retaining a feature cosine similarity of
+$0.9984$. The results position GeoProbe as a tool for measuring causal
+sensitivity rather than as an accuracy-improvement mechanism, and demonstrate
+the importance of held-out validation when interpreting attention
+interventions.
 
 \keywords{Image Geolocation \and Explainability \and Attention Intervention
 \and Vision--Language Models.}
