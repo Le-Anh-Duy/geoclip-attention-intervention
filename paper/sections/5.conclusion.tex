@@ -1,14 +1,10 @@
 \section{Conclusion}
 
-We have presented GeoProbe, an interactive system that makes what a
-geolocation model uses amenable to intervention rather than inspection.
-Biasing pre-softmax attention toward or away from selected regions, per layer
-and at inference time, turns any photograph into a causal analysis read from
-the displacement of the predicted coordinate. On Img2GPS3k, the multi-layer
-configuration selected on discovery did not improve held-out error and did not
-significantly outperform a single-layer intervention, yet it displaced
-predictions by $189.5$~km on average despite a feature cosine similarity of
-$0.9984$. That distinction is central to GeoProbe: sensitivity is an
-explanatory measurement, not evidence of improved prediction. Future work will
-replace global proposal unions with learned sparse selection, validated on a
-fresh benchmark.
+GeoProbe makes geolocation evidence amenable to intervention rather than
+inspection. Its per-layer pre-softmax bias turns a selected image region into a
+causal analysis read from geographic displacement. On Img2GPS3k, the
+discovery-selected multi-layer schedule neither improved held-out error nor
+significantly outperformed one layer, yet moved predictions by $189.5$~km at
+feature cosine $0.9984$. Sensitivity is therefore an explanatory measurement,
+not evidence of improved prediction. Future work will learn sparse proposal
+selection and validate it on a fresh benchmark.

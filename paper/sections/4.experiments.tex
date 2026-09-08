@@ -85,9 +85,10 @@ On the $1{,}321$ holdout images with an active mask, the selected configuration
 obtains $-5.32$~km (95\% CI $[-28.75,18.02]$), and its paired advantage over
 layer 2 remains only $0.92$~km (95\% CI $[-23.66,25.66]$). Mixed precision can
 change nearest-neighbour identities when gallery similarities are nearly tied;
-it is used only for candidate screening, and every value reported above comes
-from a deterministic FP32 pass that reproduced its own features exactly on
-re-execution.
+it is used only for candidate screening. In a separate diagnostic, two
+consecutive FP32 encodings of eight images in the confirmatory process were
+bitwise identical (maximum absolute difference $0$); no cross-process
+reproducibility is claimed.
 
 The experiment isolates layer-combination effects, not whether WeDetect regions
 are more informative than arbitrary ones; that claim needs an area-matched
