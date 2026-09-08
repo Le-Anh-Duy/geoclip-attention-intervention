@@ -251,9 +251,19 @@ body {
 }
 
 /* Image region selector */
+/* The selector stacks: drop target, then the image at full panel width.
+   Without this the inline-level label and canvas share a line and the
+   preview is squeezed into whatever space is left beside the label. */
+.region-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .file-drop {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 10px 16px;
   border: 1.5px dashed var(--border);
@@ -262,6 +272,16 @@ body {
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
+}
+
+/* Once an image is loaded the big dashed target is just noise: shrink it to
+   a quiet link. Dropping onto the image itself also replaces it. */
+.file-drop-compact {
+  align-self: flex-start;
+  padding: 2px 0;
+  border: none;
+  font-size: 13px;
+  text-decoration: underline;
 }
 
 .file-drop:hover,
@@ -280,9 +300,10 @@ body {
 
 .region-canvas {
   position: relative;
-  display: inline-block;
-  max-width: 100%;
-  margin-top: 14px;
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 10px;
   user-select: none;
   cursor: crosshair;
   border-radius: var(--radius-sm);

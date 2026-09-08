@@ -83,13 +83,13 @@ export default function ImageRegionSelector({
   return (
     <div className="region-selector">
       <label
-        className={`file-drop${dragOver ? ' file-drop-active' : ''}`}
+        className={`file-drop${imgSrc ? ' file-drop-compact' : ''}${dragOver ? ' file-drop-active' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <input type="file" accept="image/*" onChange={handleFile} />
-        {imgSrc ? 'Choose another image (or drag and drop)' : '📷 Drop an image here, or click to choose'}
+        {imgSrc ? 'Replace image' : '📷 Drop an image here, or click to choose'}
       </label>
 
       {imgSrc && (
