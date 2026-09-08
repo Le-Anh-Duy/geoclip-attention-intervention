@@ -3,20 +3,20 @@
 <style>
   :root {
     --ink: #0b1220;
-    --paper: #f5f7fa;
-    --muted: #8ea0b8;
-    --line: #1e2c44;
-    --baseline: #4c8dff;
-    --intervention: #ff5a5a;
+    --paper: #ffffff;
+    --muted: #64748b;
+    --line: #e3e8ef;
+    --baseline: #2563eb;
+    --intervention: #dc2626;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #333; font-family: "Segoe UI", Inter, system-ui, sans-serif; }
+  body { background: #94a3b8; font-family: "Segoe UI", Inter, system-ui, sans-serif; }
 
   /* Each card is exactly one 1080p video frame. */
   .card {
     width: 1920px; height: 1080px;
     position: relative; overflow: hidden;
-    background: var(--ink); color: var(--paper);
+    background: var(--paper); color: var(--ink);
     display: flex; flex-direction: column; justify-content: center;
     padding: 0 150px;
   }
@@ -26,7 +26,7 @@
     background-image: linear-gradient(var(--line) 1px, transparent 1px),
                       linear-gradient(90deg, var(--line) 1px, transparent 1px);
     background-size: 120px 120px;
-    opacity: 0.55;
+    opacity: 0.9;
   }
   .card > * { position: relative; }
 
@@ -40,11 +40,11 @@
   h1 .dot { color: var(--intervention); }
   .lede {
     font-size: 46px; font-weight: 400; line-height: 1.28;
-    color: #cbd8e8; margin-top: 34px; max-width: 1350px;
+    color: #334155; margin-top: 34px; max-width: 1350px;
   }
   .rule { height: 3px; width: 190px; background: var(--intervention); margin: 52px 0 40px; }
-  .authors { font-size: 30px; line-height: 1.65; color: #b6c5d8; }
-  .authors b { color: var(--paper); font-weight: 600; }
+  .authors { font-size: 30px; line-height: 1.65; color: #475569; }
+  .authors b { color: var(--ink); font-weight: 600; }
   .affil { font-size: 24px; color: var(--muted); margin-top: 14px; }
 
   /* Card 2: the contrast that carries the demonstration. */
@@ -52,12 +52,12 @@
   .rows { margin-top: 78px; display: flex; flex-direction: column; gap: 30px; }
   .row {
     display: grid; grid-template-columns: 470px 1fr; align-items: baseline;
-    padding: 28px 40px; border-left: 8px solid var(--line);
-    background: rgba(255, 255, 255, 0.035);
+    padding: 28px 40px; border-left: 8px solid #cbd5e1;
+    background: #f4f6fa;
   }
   .row.good { border-left-color: var(--baseline); }
   .row.bad  { border-left-color: var(--intervention); }
-  .row .what { font-size: 38px; color: #cbd8e8; }
+  .row .what { font-size: 38px; color: #334155; }
   .row .num  { font-size: 54px; font-weight: 700; letter-spacing: -0.02em; }
   .row.good .num { color: var(--baseline); }
   .row.bad  .num { color: var(--intervention); }
