@@ -17,20 +17,21 @@ Despite this, the evidential basis of an individual prediction remains
 largely opaque. It is widely assumed that these models exploit road
 markings, vegetation, licence plates and shopfront text, but the supporting
 evidence is predominantly anecdotal or derived from attention maps.
-Attention distributions are correlational, and have been shown to be an
-unreliable indication of the quantities upon which a model
-depends~\cite{jain2019attention}; the same limitation applies to
-gradient-based saliency~\cite{selvaraju2017gradcam} and to attention
-rollout~\cite{abnar2020rollout}. The question of practical interest ---
-whether a prediction would persist if the model were unable to attend to a
-particular region --- is causal in nature, and therefore requires
-intervention upon the model rather than inspection of it. Such analysis is
-established practice in the study of language models, where ablating
-specific attention pathways identifies the internal routes along which
-factual information propagates~\cite{meng2022rome,geva2023dissecting}. The
-present work transfers that methodology to image geolocation and renders it
-interactive, so that the effect of removing a given visual cue may be
-observed directly.
+Whether raw attention weights explain predictions remains
+contested~\cite{jain2019attention,wiegreffe2019attention}. Gradient-based
+maps~\cite{selvaraju2017gradcam}, attention rollout~\cite{abnar2020rollout}
+and Transformer relevance propagation~\cite{chefer2021transformer} assign
+importance to regions, but do not directly test the output under an internal
+intervention; saliency methods can also fail basic model- and data-randomisation
+checks~\cite{adebayo2018sanity}. Input-space perturbation methods instead mask
+pixels~\cite{petsiuk2018rise} or replace image regions~\cite{goyal2019counterfactual},
+but may confound model sensitivity with the distribution shift caused by an
+altered image. The practical question here is how a prediction changes when a
+specific attention pathway is manipulated while pixels and weights stay fixed.
+Such analysis is established in language models, where interventions identify
+internal routes associated with model behaviour~\cite{vig2020causal,meng2022rome,geva2023dissecting}.
+We transfer that approach to image
+geolocation and make its geographic effect directly observable.
 
 We present GeoProbe, whose contributions are threefold. First, an
 interactive system applying region-conditioned, per-layer attention

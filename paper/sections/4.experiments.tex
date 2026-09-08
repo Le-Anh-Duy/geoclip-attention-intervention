@@ -12,8 +12,9 @@ $2{,}081$ images; $2{,}058$ images retain a non-empty mask after CLIP's centre
 crop. Images without an active mask remain in the evaluation as exact no-ops,
 so the reported metrics describe the complete benchmark.
 
-For every active layer and all its $16$ heads, the in-region and out-of-region
-biases are initially $a=+2$ and $b=-2$. We measure top-1 geodesic error and
+For every active layer, the same in-region and out-of-region biases are applied
+to all $16$ heads, with base magnitudes $a=+2$ and $b=-2$. We measure top-1
+geodesic error and
 prediction displacement. For image $i$, improvement is
 $\Delta_i=d_i^{\mathrm{base}}-d_i^{\mathrm{int}}$, so positive values are
 better. Because a gallery change can move a prediction across continents, the
@@ -23,8 +24,8 @@ $10{,}000$ paired bootstrap resamples over images.
 
 We deterministically assign $1{,}079$ images to discovery and $1{,}918$ to
 holdout by hashing the file name. Model selection uses discovery only. A
-preliminary layer sweep supplies five candidates, $\{2,4,7,12,3\}$, ordered by
-its discovery score. We evaluate all $26$ subsets containing two to five of
+preliminary mixed-precision layer sweep on the discovery split supplies five candidates,
+$\{2,4,7,12,3\}$, ordered by discovery score. We evaluate all $26$ subsets containing two to five of
 these layers under three strength schedules: fixed $2$ per layer,
 $2/\sqrt{k}$, and $2/k$, where $k$ is the number of active layers. Together
 with five single-layer controls, this gives $78$ combinations and five
@@ -44,7 +45,8 @@ synergistically.
 \begin{table}[t]
 \centering
 \caption{Deterministic FP32 results. $\Delta_c$ is mean improvement clipped to
-$\pm2500$~km; positive is better. The multi-layer row is selected on discovery.}
+$\pm2500$~km; positive is better. Columns after the discovery score are holdout
+metrics. The multi-layer row is selected on discovery.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{2.5pt}
@@ -78,6 +80,15 @@ accumulation (between $-2.01$ and $-0.13$~km across combination sizes), but
 does not yield a consistent positive effect. Candidate rankings also transfer
 weakly from discovery to holdout ($r=0.259$), underscoring the risk of
 reporting the best result on the same images used to find it.
+
+This conclusion is not an artefact of diluting the result with no-op images.
+On the $1{,}321$ holdout images with an active mask, the selected configuration
+obtains $-5.32$~km (95\% CI $[-28.75,18.02]$), and its paired advantage over
+layer 2 remains only $0.92$~km (95\% CI $[-23.66,25.66]$). We also repeated
+feature extraction in deterministic FP32 and observed zero maximum absolute
+difference. Mixed precision can change nearest-neighbour identities when
+gallery similarities are nearly tied; it is therefore used only for candidate
+screening, while every value reported above comes from the FP32 pass.
 
 The experiment isolates layer-combination effects, not whether WeDetect regions
 are more informative than arbitrary regions; that claim requires an

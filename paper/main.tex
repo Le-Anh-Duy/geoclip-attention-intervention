@@ -3,43 +3,23 @@
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{hyperref}
-\usepackage{orcidlink}
 \usepackage{booktabs}
 \usepackage{amsmath}
-\usepackage[table]{xcolor}
-\usepackage{colortbl}
-\usepackage{multirow}
-\usepackage{array}
-\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
-\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
-
-% ---- scaffolding helpers: delete both before submitting ----------------
-% Every open item is marked with \TODO{...}. Grep the sources for "TODO".
-\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
-% Placeholder box so the document compiles before the figures exist.
-% Replace each \placeholderfig with \includegraphics[width=...]{figures/...}.
-% The trailing \vspace matches the LNCS page-squeezing idiom; keep it when
-% swapping in \includegraphics.
-\newcommand{\placeholderfig}[2]{%
-  \fbox{\parbox[c][#1][c]{0.95\linewidth}{\centering\footnotesize\textcolor{red}{#2}}}%
-  \vspace{-4mm}}
-% -----------------------------------------------------------------------
+\usepackage{tikz}
+\usetikzlibrary{positioning}
 
 \begin{document}
 
-% \TODO{title is a placeholder; MMM demo titles are typically short}
 \title{GeoProbe: Interactive Attention Intervention for Explainable Image
 Geolocation}
 \titlerunning{GeoProbe}
 
 \author{Anh-Duy Le\inst{1,2} \and
-Gia-Huy Tran\inst{1,2} \and
-Supervisor Name\inst{1,2}}
+Gia-Huy Tran\inst{1,2}}
 
 \authorrunning{Le et al.}
 
-\institute{University of Science, VNU-HCM, Vietnam\\
-\email{TODO@email}
+\institute{University of Science, VNU-HCM, Vietnam
 \and
 Vietnam National University, Ho Chi Minh City, Vietnam}
 
@@ -52,10 +32,8 @@ Vietnam National University, Ho Chi Minh City, Vietnam}
 \input{sections/4.experiments}
 \input{sections/5.conclusion}
 
+\clearpage
 \bibliographystyle{splncs04}
 \bibliography{reference}
-
-\newpage
-\input{sections/6.appendix}
 
 \end{document}

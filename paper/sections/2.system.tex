@@ -1,21 +1,6 @@
 \section{System}
 \label{sec:system}
 
-% Architecture figure, cut for space: it is the swing item for the 6-page
-% limit. Eq. 1 and Fig. 2 already specify the method and show the system.
-% Restore it only if roughly 15 lines are cut elsewhere.
-% \begin{figure}[t]
-%   \centering
-%   \placeholderfig{32mm}{figures/system.pdf --- architecture: image
-%   $\rightarrow$ WeDetect-Uni $\rightarrow$ boxes
-%   $\rightarrow$ patch mask $\rightarrow$ CLIP ViT-L/14 with per-layer key
-%   bias $\rightarrow$ GeoCLIP gallery $\rightarrow$ two predictions on a map}
-%   \caption{Overview of GeoProbe. The unmodified and intervened forward
-%   passes share a single loaded model, GPS gallery and set of location
-%   embeddings; only the vision tower is re-executed.}
-%   \label{fig:system}
-% \end{figure}
-
 \subsection{Background}
 
 GeoCLIP~\cite{cepeda2023geoclip} encodes an image $x$ with a CLIP ViT-L/14
@@ -66,6 +51,9 @@ The \texttt{CLS} key is never biased: as a summary token rather than a
 spatial patch, the interior/exterior distinction does not apply to it, and
 biasing it would confound the regional effect with a global rescaling of the
 summary pathway.
+Here, ``causal'' refers narrowly to the effect of this controlled operation on
+the model's computation; it does not by itself establish that a semantic object
+causes the prediction in the photographed world.
 
 \subsection{Mapping Regions to Patches}
 
@@ -85,7 +73,8 @@ not scale to a complete dataset and make the analysis depend on a
 user-supplied concept. For systematic evaluation, GeoProbe uses WeDetect-Uni,
 a universal proposal generator trained with a learned objectness prompt to
 retrieve category-agnostic foreground boxes~\cite{fu2026wedetect}. It
-therefore does not require adapting a text prompt to each image. The detector
+therefore avoids the per-image text query required by grounded detectors such
+as Grounding DINO~\cite{liu2024grounding}. The detector
 never observes ground-truth coordinates. Proposals are computed once and
 cached; downstream layer searches only change the attention intervention, so
 every configuration receives identical regions.
@@ -100,4 +89,3 @@ intervened top-$k$ predictions, so the comparison presented to the user is
 always between two forward passes of identical weights. Manual rectangles
 are used in the live interaction, while cached WeDetect-Uni proposals provide
 the reproducible dataset-scale analysis reported below.
-\TODO{one sentence reporting per-request latency}

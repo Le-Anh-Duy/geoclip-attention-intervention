@@ -3,17 +3,27 @@
 
 \begin{figure}[t]
   \centering
-  \placeholderfig{40mm}{figures/ui-main.png --- image and selected region at
-  left, layer controls in the centre, and baseline and intervened predictions
-  on the map at right}
-  \caption{GeoProbe displays both predictions and their geodesic displacement.}
-  \label{fig:ui_main}
-  \vspace{-3mm}
+  \small
+  \begin{tikzpicture}[
+      node distance=4mm,
+      stage/.style={draw, rounded corners=1pt, align=center,
+                    minimum height=9mm, text width=24mm, inner sep=2pt},
+      arrow/.style={->, line width=0.45pt}]
+    \node[stage] (input) {Image\\+ regions};
+    \node[stage, right=of input] (control) {Per-layer\\attention bias};
+    \node[stage, right=of control] (passes) {Baseline +\\intervened passes};
+    \node[stage, right=of passes] (output) {GPS results\\+ displacement};
+    \draw[arrow] (input) -- (control);
+    \draw[arrow] (control) -- (passes);
+    \draw[arrow] (passes) -- (output);
+  \end{tikzpicture}
+  \caption{Interactive analysis flow. Regions may be drawn manually or loaded
+  from WeDetect-Uni; both model outputs are presented together.}
+  \label{fig:interaction_flow}
+  \vspace{-2mm}
 \end{figure}
 
-A demonstration video of under three minutes is available at
-\TODO{video URL}. Attendees operate the system directly through three short
-scenarios.
+Attendees operate the system directly through three short scenarios.
 
 \subsubsection{Regional dependence.}
 The attendee uploads a street-level image, marks a visual cue such as a sign or
@@ -36,9 +46,13 @@ the baseline exactly.
 \subsection{Deployment and Relevance}
 
 The live system stores GeoCLIP, its $10^5$-point GPS gallery, location
-embeddings, cached proposals and map tiles locally, and therefore requires no
-network connection. GeoProbe connects multimodal geolocation with causal
-explanation: rather than presenting an attention map as evidence, it lets the
-attendee change an attention pathway and observe the consequent geographic
-output. This distinction is relevant to both multimedia verification and the
-privacy risks of inferring location from untagged images.
+embeddings and cached proposals locally. The current interface obtains
+basemap tiles and reverse-geocoded place names from OpenStreetMap services;
+these provide cartographic context but are not part of model inference.
+The implementation and experiment scripts are available at
+\url{https://github.com/Le-Anh-Duy/geoclip-attention-intervention}.
+GeoProbe connects multimodal geolocation with causal explanation: rather than
+presenting an attention map as evidence, it lets the attendee change an
+attention pathway and observe the consequent geographic output. This
+distinction is relevant to both multimedia verification and the privacy risks
+of inferring location from untagged images.

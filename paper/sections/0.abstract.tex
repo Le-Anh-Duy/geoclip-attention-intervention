@@ -5,17 +5,17 @@ supports a prediction. Post-hoc saliency is correlational: it indicates where
 activation concentrates without establishing that the highlighted evidence
 causes the output. We present GeoProbe, an interactive system for causal
 analysis of image geolocation. Given a region specified manually or obtained
-from the prompt-free WeDetect-Uni universal proposal generator, GeoProbe adds
+from the prompt-free WeDetect-Uni proposal generator, GeoProbe adds
 a key-indexed bias to the pre-softmax attention logits of the CLIP vision
 tower, independently per layer. It executes GeoCLIP with and without the
 intervention and displays both predictions and their geodesic displacement.
 On all $2{,}997$ Img2GPS3k images, we search single and multi-layer
 interventions using a discovery split and evaluate the selected configuration
-on a held-out split. A three-layer configuration improves the clipped mean
-error reduction by $11.94$~km on discovery but yields $-3.66$~km on holdout
+on a held-out split. A three-layer configuration achieves $+11.94$~km under
+the clipped mean-improvement score on discovery but $-3.66$~km on holdout
 (95\% CI $[-20.43,12.40]$), and does not significantly outperform the
 selected single layer. Nevertheless, it moves the predicted coordinate by
-$189.5$~km on average while retaining a feature cosine similarity of
+$189.5$~km on average while retaining an image-embedding cosine similarity of
 $0.9984$. The results position GeoProbe as a tool for measuring causal
 sensitivity rather than as an accuracy-improvement mechanism, and demonstrate
 the importance of held-out validation when interpreting attention
