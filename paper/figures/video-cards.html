@@ -1,0 +1,109 @@
+<meta charset="utf-8">
+<title>GeoProbe video cards</title>
+<style>
+  :root {
+    --ink: #0b1220;
+    --paper: #f5f7fa;
+    --muted: #8ea0b8;
+    --line: #1e2c44;
+    --baseline: #4c8dff;
+    --intervention: #ff5a5a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #333; font-family: "Segoe UI", Inter, system-ui, sans-serif; }
+
+  /* Each card is exactly one 1080p video frame. */
+  .card {
+    width: 1920px; height: 1080px;
+    position: relative; overflow: hidden;
+    background: var(--ink); color: var(--paper);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 150px;
+  }
+  /* Faint patch grid: the 16x16 grid the intervention actually acts on. */
+  .card::before {
+    content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 120px 120px;
+    opacity: 0.55;
+  }
+  .card > * { position: relative; }
+
+  .eyebrow {
+    font-size: 26px; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 42px;
+  }
+  h1 {
+    font-size: 148px; font-weight: 700; letter-spacing: -0.035em; line-height: 0.95;
+  }
+  h1 .dot { color: var(--intervention); }
+  .lede {
+    font-size: 46px; font-weight: 400; line-height: 1.28;
+    color: #cbd8e8; margin-top: 34px; max-width: 1350px;
+  }
+  .rule { height: 3px; width: 190px; background: var(--intervention); margin: 52px 0 40px; }
+  .authors { font-size: 30px; line-height: 1.65; color: #b6c5d8; }
+  .authors b { color: var(--paper); font-weight: 600; }
+  .affil { font-size: 24px; color: var(--muted); margin-top: 14px; }
+
+  /* Card 2: the contrast that carries the demonstration. */
+  .question { font-size: 84px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.08; }
+  .rows { margin-top: 78px; display: flex; flex-direction: column; gap: 30px; }
+  .row {
+    display: grid; grid-template-columns: 470px 1fr; align-items: baseline;
+    padding: 28px 40px; border-left: 8px solid var(--line);
+    background: rgba(255, 255, 255, 0.035);
+  }
+  .row.good { border-left-color: var(--baseline); }
+  .row.bad  { border-left-color: var(--intervention); }
+  .row .what { font-size: 38px; color: #cbd8e8; }
+  .row .num  { font-size: 54px; font-weight: 700; letter-spacing: -0.02em; }
+  .row.good .num { color: var(--baseline); }
+  .row.bad  .num { color: var(--intervention); }
+  .row .num small { font-size: 34px; font-weight: 400; color: var(--muted); }
+  .footnote { margin-top: 64px; font-size: 32px; color: var(--muted); }
+
+  /* Card 3: the claim the paper actually makes. */
+  .closing { font-size: 96px; font-weight: 600; letter-spacing: -0.025em; line-height: 1.16; max-width: 1480px; }
+  .closing em { font-style: normal; color: var(--intervention); }
+  .tag { margin-top: 70px; font-size: 30px; color: var(--muted); letter-spacing: 0.06em; }
+</style>
+
+<!-- Card 1 -- opening title, also the video thumbnail -->
+<section class="card">
+  <div class="eyebrow">MMM 2027 &nbsp;·&nbsp; Demonstration Track</div>
+  <h1>GeoProbe<span class="dot">.</span></h1>
+  <p class="lede">Interactive attention intervention for explainable image geolocation</p>
+  <div class="rule"></div>
+  <div class="authors">
+    <b>Anh-Duy Le</b> &nbsp;·&nbsp; <b>Gia-Huy Tran</b> &nbsp;·&nbsp; Duc-Tuan Luu
+    &nbsp;·&nbsp; Anh-Duy Tran &nbsp;·&nbsp; Duc-Tien Dang-Nguyen
+  </div>
+  <div class="affil">
+    University of Science, VNU-HCM &nbsp;·&nbsp; University of Information Technology, VNU-HCM
+    &nbsp;·&nbsp; KU Leuven &nbsp;·&nbsp; University of Bergen
+  </div>
+</section>
+
+<!-- Card 2 -- the finding worth watching for -->
+<section class="card">
+  <div class="eyebrow">One photograph, one region</div>
+  <div class="question">The same bias,<br>at a different depth.</div>
+  <div class="rows">
+    <div class="row"><div class="what">Unmodified GeoCLIP</div>
+      <div class="num">4,900 km <small>error</small></div></div>
+    <div class="row good"><div class="what">Amplified in layers 16&ndash;19</div>
+      <div class="num">154 km <small>error</small></div></div>
+    <div class="row bad"><div class="what">Amplified in layers 21&ndash;23</div>
+      <div class="num">5,100 km <small>error</small></div></div>
+  </div>
+  <div class="footnote">Adjacent layer bands, opposite outcomes &mdash; visible only under intervention.</div>
+</section>
+
+<!-- Card 3 -- closing, phrased to match the paper's held-out result -->
+<section class="card">
+  <div class="eyebrow">What GeoProbe measures</div>
+  <div class="closing">Sensitivity is a <em>measurement</em>,<br>not an accuracy gain.</div>
+  <div class="tag">Img2GPS3k &nbsp;·&nbsp; held-out split &nbsp;·&nbsp; 189.5 km mean displacement at feature cosine 0.9984</div>
+</section>
