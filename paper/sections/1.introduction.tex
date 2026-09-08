@@ -5,13 +5,13 @@ progressed from retrieval over geotagged collections~\cite{hays2008im2gps},
 through classification over discretised geographic
 cells~\cite{weyand2016planet,pramanick2022translocator}, to contrastive
 alignment between images and continuous GPS coordinates.
-GeoCLIP~\cite{cepeda2023geoclip} exemplifies the latter paradigm: a
+GeoCLIP~\cite{cepeda2023geoclip} exemplifies the latter: a
 CLIP~\cite{radford2021clip} vision tower is aligned with a location encoder,
 and inference reduces to nearest-neighbour retrieval over a gallery of
-$10^{5}$ GPS coordinates. Such models attain accuracies that render them
-practically useful and, simultaneously, consequential, as the same
-capability supports both the verification of news imagery and the inference
-of location from photographs shared without geotags.
+$10^{5}$ coordinates. Such models are accurate enough to be practically useful
+and, for the same reason, consequential --- the capability supports both the
+verification of news imagery and the inference of location from photographs
+shared without geotags.
 
 Despite this, the evidential basis of an individual prediction remains
 largely opaque. It is widely assumed that these models exploit road

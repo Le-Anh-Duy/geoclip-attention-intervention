@@ -1,0 +1,17 @@
+{
+  "subset": "images with at least one proposal",
+  "n_evaluated": 2050,
+  "n_excluded_empty_mask": 947,
+  "outcomes_amplify_all_layers": {
+    "n": 2050,
+    "worsened": 958,
+    "improved": 523,
+    "unchanged": 569,
+    "mean_error_increase_km": 827.2236291771211
+  },
+  "source_runs": [
+    "img2gps3k_wedetect_threshold_0.4",
+    "img2gps3k_wedetect_union_all_layers_a2_bneg2_threshold_0.4",
+    "img2gps3k_wedetect_union_threshold_0.4"
+  ]
+}
