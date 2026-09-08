@@ -4,7 +4,9 @@ import 'leaflet/dist/leaflet.css'
 import { reverseGeocode } from '../geocode'
 
 function PredictionRow({ p, rank }) {
-  const [place, setPlace] = useState(null)
+  // undefined = still looking up, null = no provider could answer (show the
+  // coordinates alone), string = a place name.
+  const [place, setPlace] = useState(undefined)
 
   useEffect(() => {
     let cancelled = false
@@ -19,7 +21,7 @@ function PredictionRow({ p, rank }) {
   return (
     <li>
       <span className="place-name">
-        #{rank + 1} {place || <em className="place-loading">looking up location…</em>}
+        #{rank + 1} {place === undefined ? <em className="place-loading">looking up location…</em> : place}
       </span>
       <span className="coords">
         {p.lat.toFixed(4)}, {p.lon.toFixed(4)} · p={p.prob.toFixed(4)}
@@ -79,9 +81,14 @@ export default function ResultsPanel({ result, groundTruth, onSave, saved }) {
   function attachMap(node) {
     if (!node || mapInstance.current) return
     mapInstance.current = L.map(node).setView([20, 0], 2)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(mapInstance.current)
+    // tile.openstreetmap.org is unreachable on some networks and CARTO's free
+    // basemap now stamps "API KEY REQUIRED" across every tile. Esri's light
+    // grey canvas needs no key, stays reachable, and keeps the baseline and
+    // intervention markers legible against it. Note the {z}/{y}/{x} order.
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      { attribution: 'Tiles &copy; Esri', maxZoom: 16 },
+    ).addTo(mapInstance.current)
   }
 
   useEffect(() => {
