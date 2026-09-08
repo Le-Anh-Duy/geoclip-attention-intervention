@@ -1,27 +1,36 @@
-\section*{Appendix: Supplementary Material}
+\section*{Appendix: Demonstration Details}
 
 \subsubsection*{Demonstration video.}
 A screen capture of the three scenarios of Section~\ref{sec:demo}, recorded on
 a live instance, is available at \url{VIDEO-URL-HERE} (under three minutes).
 
-\subsubsection*{Layer-combination search.}
-The candidate set contains every subset of size two to five from layers
-$\{2,4,7,12,3\}$. Each subset is evaluated with fixed, square-root-normalised
-and linearly normalised intervention strength. The result table reports
-discovery, holdout and full-set metrics for all $78$ combinations and the five
-single-layer controls.
+\subsubsection*{What the live demonstration shows.}
+Attendees operate a running instance themselves, on provided samples or their
+own photographs. A session lasts two to three minutes: upload an image, obtain
+the unmodified prediction, mark a region by hand or load prompt-free
+WeDetect-Uni proposals, choose which of the $24$ layers the bias acts on, and
+read both predictions and their geodesic separation from the map.
 
-\subsubsection*{Source code.}
-The backend, frontend, proposal cache, search notebook and the complete result
-table will be released publicly upon acceptance.
+\subsubsection*{Interaction details.}
+Regions are drawn as rectangles or selected from returned proposals, and
+combine by union. Each layer exposes the in-region bias $a$ and out-of-region
+bias $b$, shown as a logit bias or the equivalent attention scale. Setting
+every bias to zero is an exact no-op, so the attendee can recover the
+unmodified model and verify the displayed baseline. A separate control
+evaluates each proposal independently, ranking the regions of one image by the
+displacement each induces.
 
-\subsubsection*{Models and data.}
-GeoCLIP with a CLIP ViT-L/14 vision tower and the released $10^{5}$-point
-GPS gallery; WeDetect-Uni Base with proposal threshold $0.4$ and NMS IoU
-$0.7$; and Img2GPS3k ($2{,}997$ images). No component is fine-tuned or
-retrained.
+\subsubsection*{Setup requirements.}
+We provide the demonstration machine: a laptop holding the $1.6$~GB CLIP
+ViT-L/14 checkpoint, the $410$~MB WeDetect-Uni proposal graph, the GPS gallery,
+the location embeddings and a cached offline tile set. No GPU is required ---
+on CPU alone one request returns both predictions in about eight seconds, and
+proposal generation takes about two seconds. From the organisers we need only
+table space, mains power and, where available, an external monitor; no network
+access is necessary.
 
-\subsubsection*{Reproducing the quantitative study.}
-The search uses seed $42$ and deterministic FP32 with TF32 disabled. It took
-$1{,}081.9$~s on an NVIDIA RTX PRO 6000 Blackwell; the proposal pass took
-$19.8$~s.
+\subsubsection*{Search details.}
+Every subset of size two to five of layers $\{2,4,7,12,3\}$, at fixed,
+square-root-normalised and linearly normalised strength: $78$ combinations plus
+five single-layer controls. Seed $42$, deterministic FP32 with TF32 disabled,
+$1{,}081.9$~s on an NVIDIA RTX PRO 6000 Blackwell.
