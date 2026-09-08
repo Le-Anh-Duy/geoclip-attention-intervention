@@ -200,7 +200,7 @@ function App() {
         </div>
         <p className="app-subtitle">
           Draw regions of interest, tune <code>a</code>/<code>b</code> for each attention layer, and compare the result
-          with the baseline &mdash; no Grounding DINO required.
+          with the baseline &mdash; or load prompt-free proposals from WeDetect-Uni.
         </p>
       </header>
 

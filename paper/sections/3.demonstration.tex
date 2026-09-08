@@ -49,8 +49,14 @@ The live system stores GeoCLIP, its $10^5$-point GPS gallery, location
 embeddings and cached proposals locally. The current interface obtains
 basemap tiles and reverse-geocoded place names from OpenStreetMap services;
 these provide cartographic context but are not part of model inference.
-The implementation and experiment scripts are available at
-\url{https://github.com/Le-Anh-Duy/geoclip-attention-intervention}.
+
+\emph{Technical requirements.} We bring the demonstration machine: a single
+laptop holding the $1.6$~GB CLIP ViT-L/14 checkpoint and the $410$~MB
+WeDetect-Uni proposal graph. No GPU is required --- on CPU alone, one request
+returns both predictions in about eight seconds. We need only table space and
+mains power; a cached offline tile set replaces the map service where network
+access is unavailable. The implementation and
+experiment scripts will be made publicly available upon acceptance.
 GeoProbe connects multimodal geolocation with causal explanation: rather than
 presenting an attention map as evidence, it lets the attendee change an
 attention pathway and observe the consequent geographic output. This

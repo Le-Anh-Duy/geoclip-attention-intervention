@@ -1,28 +1,19 @@
 \section*{Appendix: Supplementary Material}
 
+\subsubsection*{Demonstration video.}
+A screen capture of the three scenarios of Section~\ref{sec:demo}, recorded on
+a live instance, is available at \url{VIDEO-URL-HERE} (under three minutes).
+
 \subsubsection*{Layer-combination search.}
 The candidate set contains every subset of size two to five from layers
 $\{2,4,7,12,3\}$. Each subset is evaluated with fixed, square-root-normalised
-and linearly normalised intervention strength. The released result table
-contains discovery, holdout and full-set metrics for all $78$ combinations,
-as well as the five single-layer controls.
-
-\subsubsection*{Active-mask robustness.}
-Among the $1{,}321$ holdout images with a non-empty proposal mask, the selected
-configuration obtains $-5.32$~km clipped improvement (95\% CI
-$[-28.75,18.02]$); its paired advantage over layer 2 is $0.92$~km (95\% CI
-$[-23.66,25.66]$). This agrees with the full-set conclusion.
-
-\subsubsection*{Numerical precision.}
-An exploratory mixed-precision run changed nearest-neighbour identities
-relative to FP32 because gallery similarities can be nearly tied. Confirmatory
-values use deterministic FP32; repeated feature extraction had zero maximum
-absolute difference.
+and linearly normalised intervention strength. The result table reports
+discovery, holdout and full-set metrics for all $78$ combinations and the five
+single-layer controls.
 
 \subsubsection*{Source code.}
-The source is available at
-\url{https://github.com/Le-Anh-Duy/geoclip-attention-intervention}. It includes
-the backend, frontend, proposal cache and search notebook.
+The backend, frontend, proposal cache, search notebook and the complete result
+table will be released publicly upon acceptance.
 
 \subsubsection*{Models and data.}
 GeoCLIP with a CLIP ViT-L/14 vision tower and the released $10^{5}$-point
@@ -31,7 +22,6 @@ $0.7$; and Img2GPS3k ($2{,}997$ images). No component is fine-tuned or
 retrained.
 
 \subsubsection*{Reproducing the quantitative study.}
-The private \href{https://www.kaggle.com/code/giahuytran1/wedetect-geoclip-layer-synergy}{Kaggle notebook}
-uses seed $42$, deterministic FP32 and disables TF32. Search took
-$1081.9$ seconds on an NVIDIA RTX PRO 6000 Blackwell; the proposal pass took
-$19.8$ seconds.
+The search uses seed $42$ and deterministic FP32 with TF32 disabled. It took
+$1{,}081.9$~s on an NVIDIA RTX PRO 6000 Blackwell; the proposal pass took
+$19.8$~s.

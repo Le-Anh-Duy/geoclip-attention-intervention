@@ -38,15 +38,14 @@ equivalent to magnitude $0.667$ at each layer. Table~\ref{tab:main} compares
 this configuration with the discovery-selected single-layer control. The
 apparent discovery gain does not transfer: the selected combination changes
 from $+11.94$~km on discovery to $-3.66$~km on holdout. Its paired advantage
-over layer 2 is only $0.64$~km (95\% CI $[-16.83,17.57]$). Thus, the experiment
-does not support the hypothesis that individually promising layers combine
-synergistically.
+over layer 2 is only $0.64$~km (95\% CI $[-16.83,17.57]$). The experiment
+therefore does not support synergy between individually promising layers.
 
 \begin{table}[t]
 \centering
 \caption{Deterministic FP32 results. $\Delta_c$ is mean improvement clipped to
 $\pm2500$~km; positive is better. Columns after the discovery score are holdout
-metrics. The multi-layer row is selected on discovery.}
+metrics.}
 \label{tab:main}
 \small
 \setlength{\tabcolsep}{2.5pt}
@@ -84,12 +83,12 @@ reporting the best result on the same images used to find it.
 This conclusion is not an artefact of diluting the result with no-op images.
 On the $1{,}321$ holdout images with an active mask, the selected configuration
 obtains $-5.32$~km (95\% CI $[-28.75,18.02]$), and its paired advantage over
-layer 2 remains only $0.92$~km (95\% CI $[-23.66,25.66]$). We also repeated
-feature extraction in deterministic FP32 and observed zero maximum absolute
-difference. Mixed precision can change nearest-neighbour identities when
-gallery similarities are nearly tied; it is therefore used only for candidate
-screening, while every value reported above comes from the FP32 pass.
+layer 2 remains only $0.92$~km (95\% CI $[-23.66,25.66]$). Mixed precision can
+change nearest-neighbour identities when gallery similarities are nearly tied;
+it is used only for candidate screening, and every value reported above comes
+from a deterministic FP32 pass that reproduced its own features exactly on
+re-execution.
 
 The experiment isolates layer-combination effects, not whether WeDetect regions
-are more informative than arbitrary regions; that claim requires an
-area-matched random-mask control and a fresh external test set.
+are more informative than arbitrary ones; that claim needs an area-matched
+random-mask control.
