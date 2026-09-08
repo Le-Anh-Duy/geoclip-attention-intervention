@@ -22,12 +22,13 @@ displacement each induces.
 
 \subsubsection*{Setup requirements.}
 We provide the demonstration machine: a laptop holding the $1.6$~GB CLIP
-ViT-L/14 checkpoint, the $410$~MB WeDetect-Uni proposal graph, the GPS gallery,
-the location embeddings and a cached offline tile set. No GPU is required ---
-on CPU alone one request returns both predictions in about eight seconds, and
-proposal generation takes about two seconds. From the organisers we need only
-table space, mains power and, where available, an external monitor; no network
-access is necessary.
+ViT-L/14 checkpoint, the $410$~MB WeDetect-Uni proposal graph, the GPS gallery
+and the location embeddings. No GPU is required --- on CPU alone one request
+returns both predictions in about eight seconds, and proposal generation takes
+about two seconds. Inference runs offline; only basemap tiles and place names
+come from OpenStreetMap, and predictions and displacements stay legible
+without them. From the organisers we need table space, mains power and, where
+available, an external monitor.
 
 \subsubsection*{Search details.}
 Every subset of size two to five of layers $\{2,4,7,12,3\}$, at fixed,
