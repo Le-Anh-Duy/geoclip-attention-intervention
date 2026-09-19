@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geoprobe"
+version = "0.1.0"
+description = "Standalone GeoProbe paper reproduction pipeline"
+requires-python = ">=3.10"
+dependencies = [
+  "torch",
+  "transformers",
+  "Pillow",
+  "numpy",
+  "pandas",
+  "tqdm",
+  "onnxruntime",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+geoprobe = "geoprobe.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
